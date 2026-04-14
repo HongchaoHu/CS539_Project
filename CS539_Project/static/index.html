@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis Agent - Upload & Analyze</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📊 Data Analysis Agent</h1>
+            <p class="subtitle">Drop your CSV file and get instant insights powered by AI</p>
+            <div class="status-indicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Checking status...</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <h2>Drop your CSV file here</h2>
+                    <p>or click to browse</p>
+                    <input type="file" id="fileInput" accept=".csv" hidden>
+                    <div class="file-info" id="fileInfo" style="display: none;">
+                        <span class="file-name" id="fileName"></span>
+                        <button class="btn-remove" id="removeFile">✕</button>
+                    </div>
+                </div>
+
+                <div class="query-section">
+                    <label for="queryInput">What would you like to know?</label>
+                    <textarea 
+                        id="queryInput" 
+                        placeholder="e.g., What is the distribution of sales by region? What patterns exist in this data?"
+                        rows="3"
+                    ></textarea>
+                    
+                    <div class="example-queries">
+                        <p>Example questions:</p>
+                        <div class="query-chips">
+                            <button class="query-chip" data-query="Provide a comprehensive exploratory data analysis">📊 Full EDA</button>
+                            <button class="query-chip" data-query="What are the key patterns and correlations in this data?">🔍 Find Patterns</button>
+                            <button class="query-chip" data-query="Show me the distribution of values and identify any outliers">📈 Distributions</button>
+                            <button class="query-chip" data-query="Compare different categories and identify top performers">🏆 Compare Categories</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-primary" id="analyzeBtn" disabled>
+                    <span class="btn-text">Analyze Dataset</span>
+                    <span class="btn-loading" style="display: none;">
+                        <span class="spinner"></span> Analyzing...
+                    </span>
+                </button>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <h2>Analysis Results</h2>
+                    <button class="btn-secondary" id="newAnalysisBtn">📤 New Analysis</button>
+                </div>
+
+                <div class="results-grid">
+                    <!-- Summary Card -->
+                    <div class="result-card summary-card">
+                        <div class="card-header">
+                            <h3>💡 Summary</h3>
+                            <span class="quality-badge" id="qualityBadge"></span>
+                        </div>
+                        <div class="card-content">
+                            <div id="summaryText" class="summary-text"></div>
+                            <div class="metrics">
+                                <div class="metric">
+                                    <span class="metric-label">Analysis Time</span>
+                                    <span class="metric-value" id="latencyValue">-</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Steps Executed</span>
+                                    <span class="metric-value" id="stepsValue">-</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Visualizations</span>
+                                    <span class="metric-value" id="vizValue">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visualizations Card -->
+                    <div class="result-card">
+                        <div class="card-header">
+                            <h3>📊 Visualizations</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="visualizationsContainer" class="visualizations-grid"></div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Steps Card -->
+                    <div class="result-card">
+                        <div class="card-header">
+                            <h3>🔍 Analysis Steps</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="stepsContainer" class="steps-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Evaluation Card -->
+                    <div class="result-card" id="evaluationCard" style="display: none;">
+                        <div class="card-header">
+                            <h3>⭐ Quality Evaluation</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="evaluationContent" class="evaluation-content"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download Section -->
+                <div class="download-section">
+                    <h3>📥 Download Results</h3>
+                    <div class="download-buttons">
+                        <button class="btn-download" id="downloadArtifactBtn">
+                            <span>📄 Full Report (JSON)</span>
+                        </button>
+                        <button class="btn-download" id="downloadVisualizationsBtn">
+                            <span>🖼️ All Visualizations</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Error Section -->
+            <section class="error-section" id="errorSection" style="display: none;">
+                <div class="error-card">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Analysis Failed</h3>
+                    <p id="errorMessage"></p>
+                    <button class="btn-secondary" id="tryAgainBtn">Try Again</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Data Analysis Agent</p>
+            <p>Hongchao Hu & Niyati Gohil</p>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1459 @@
+{
+  "user_prompt": "Provide a comprehensive exploratory data analysis",
+  "file_path": "uploads/74b261bc-6c7f-42e9-a8ef-0e4b267491bb_dog_breeds.csv",
+  "steps": [
+    {
+      "step": "load_dataset",
+      "result": {
+        "file_name": "74b261bc-6c7f-42e9-a8ef-0e4b267491bb_dog_breeds.csv",
+        "num_rows": 97,
+        "num_columns": 23,
+        "column_names": [
+          "Name",
+          "min_life_expectancy",
+          "max_life_expectancy",
+          "max_height_male",
+          "max_height_female",
+          "max_weight_male",
+          "max_weight_female",
+          "min_height_male",
+          "min_height_female",
+          "min_weight_male",
+          "min_weight_female",
+          "good_with_children",
+          "good_with_other_dogs",
+          "shedding",
+          "grooming",
+          "drooling",
+          "coat_length",
+          "good_with_strangers",
+          "playfulness",
+          "protectiveness",
+          "trainability",
+          "energy",
+          "barking"
+        ],
+        "data_types": {
+          "Name": "str",
+          "min_life_expectancy": "int64",
+          "max_life_expectancy": "int64",
+          "max_height_male": "float64",
+          "max_height_female": "float64",
+          "max_weight_male": "float64",
+          "max_weight_female": "float64",
+          "min_height_male": "float64",
+          "min_height_female": "float64",
+          "min_weight_male": "float64",
+          "min_weight_female": "float64",
+          "good_with_children": "int64",
+          "good_with_other_dogs": "int64",
+          "shedding": "int64",
+          "grooming": "int64",
+          "drooling": "int64",
+          "coat_length": "int64",
+          "good_with_strangers": "int64",
+          "playfulness": "int64",
+          "protectiveness": "int64",
+          "trainability": "int64",
+          "energy": "int64",
+          "barking": "int64"
+        },
+        "memory_usage_mb": 0.022927284240722656
+      }
+    },
+    {
+      "step": "inspect_dataset",
+      "basic_info": {
+        "file_name": "74b261bc-6c7f-42e9-a8ef-0e4b267491bb_dog_breeds.csv",
+        "num_rows": 97,
+        "num_columns": 23,
+        "column_names": [
+          "Name",
+          "min_life_expectancy",
+          "max_life_expectancy",
+          "max_height_male",
+          "max_height_female",
+          "max_weight_male",
+          "max_weight_female",
+          "min_height_male",
+          "min_height_female",
+          "min_weight_male",
+          "min_weight_female",
+          "good_with_children",
+          "good_with_other_dogs",
+          "shedding",
+          "grooming",
+          "drooling",
+          "coat_length",
+          "good_with_strangers",
+          "playfulness",
+          "protectiveness",
+          "trainability",
+          "energy",
+          "barking"
+        ],
+        "data_types": {
+          "Name": "str",
+          "min_life_expectancy": "int64",
+          "max_life_expectancy": "int64",
+          "max_height_male": "float64",
+          "max_height_female": "float64",
+          "max_weight_male": "float64",
+          "max_weight_female": "float64",
+          "min_height_male": "float64",
+          "min_height_female": "float64",
+          "min_weight_male": "float64",
+          "min_weight_female": "float64",
+          "good_with_children": "int64",
+          "good_with_other_dogs": "int64",
+          "shedding": "int64",
+          "grooming": "int64",
+          "drooling": "int64",
+          "coat_length": "int64",
+          "good_with_strangers": "int64",
+          "playfulness": "int64",
+          "protectiveness": "int64",
+          "trainability": "int64",
+          "energy": "int64",
+          "barking": "int64"
+        },
+        "memory_usage_mb": 0.022927284240722656
+      },
+      "missing_values": {
+        "total_missing_values": 0,
+        "columns_with_missing": {},
+        "percentage_complete": 100.0
+      }
+    },
+    {
+      "step": "descriptive_statistics",
+      "result": {
+        "basic_statistics": {
+          "min_life_expectancy": {
+            "count": 97.0,
+            "mean": 11.360824742268042,
+            "std": 1.6531886299052843,
+            "min": 7.0,
+            "25%": 10.0,
+            "50%": 12.0,
+            "75%": 12.0,
+            "max": 15.0
+          },
+          "max_life_expectancy": {
+            "count": 97.0,
+            "mean": 14.0,
+            "std": 1.8708286933869707,
+            "min": 9.0,
+            "25%": 13.0,
+            "50%": 14.0,
+            "75%": 15.0,
+            "max": 19.0
+          },
+          "max_height_male": {
+            "count": 97.0,
+            "mean": 20.561855670103093,
+            "std": 6.9496918891381,
+            "min": 7.0,
+            "25%": 15.0,
+            "50%": 22.0,
+            "75%": 27.0,
+            "max": 33.0
+          },
+          "max_height_female": {
+            "count": 97.0,
+            "mean": 20.427835051546392,
+            "std": 6.836250529774484,
+            "min": 7.0,
+            "25%": 15.0,
+            "50%": 22.0,
+            "75%": 27.0,
+            "max": 32.0
+          },
+          "max_weight_male": {
+            "count": 97.0,
+            "mean": 60.89072164948453,
+            "std": 43.28142423544767,
+            "min": 6.0,
+            "25%": 23.0,
+            "50%": 60.0,
+            "75%": 85.0,
+            "max": 200.0
+          },
+          "max_weight_female": {
+            "count": 97.0,
+            "mean": 54.29278350515464,
+            "std": 36.47351849693681,
+            "min": 6.0,
+            "25%": 22.0,
+            "50%": 55.0,
+            "75%": 71.0,
+            "max": 200.0
+          },
+          "min_height_male": {
+            "count": 97.0,
+            "mean": 18.164948453608247,
+            "std": 6.747963292065636,
+            "min": 5.0,
+            "25%": 12.0,
+            "50%": 19.0,
+            "75%": 24.0,
+            "max": 30.0
+          },
+          "min_height_female": {
+            "count": 97.0,
+            "mean": 18.061855670103093,
+            "std": 6.656473091706941,
+            "min": 5.0,
+            "25%": 12.0,
+            "50%": 19.0,
+            "75%": 24.0,
+            "max": 30.0
+          },
+          "min_weight_male": {
+            "count": 97.0,
+            "mean": 46.02474226804123,
+            "std": 34.92743081175547,
+            "min": 3.0,
+            "25%": 15.0,
+            "50%": 40.0,
+            "75%": 65.0,
+            "max": 150.0
+          },
+          "min_weight_female": {
+            "count": 97.0,
+            "mean": 40.07628865979381,
+            "std": 28.510622191547153,
+            "min": 3.0,
+            "25%": 15.0,
+            "50%": 35.0,
+            "75%": 57.0,
+            "max": 150.0
+          },
+          "good_with_children": {
+            "count": 97.0,
+            "mean": 3.8350515463917527,
+            "std": 1.1518138989142122,
+            "min": 0.0,
+            "25%": 3.0,
+            "50%": 3.0,
+            "75%": 5.0,
+            "max": 5.0
+          },
+          "good_with_other_dogs": {
+            "count": 97.0,
+            "mean": 3.443298969072165,
+            "std": 1.0989490449681578,
+            "min": 0.0,
+            "25%": 3.0,
+            "50%": 3.0,
+            "75%": 4.0,
+            "max": 5.0
+          },
+          "shedding": {
+            "count": 97.0,
+            "mean": 2.5876288659793816,
+            "std": 0.9214184866234283,
+            "min": 0.0,
+            "25%": 2.0,
+            "50%": 3.0,
+            "75%": 3.0,
+            "max": 5.0
+          },
+          "grooming": {
+            "count": 97.0,
+            "mean": 2.154639175257732,
+            "std": 1.0342086969591675,
+            "min": 0.0,
+            "25%": 1.0,
+            "50%": 2.0,
+            "75%": 3.0,
+            "max": 5.0
+          },
+          "drooling": {
+            "count": 97.0,
+            "mean": 1.6185567010309279,
+            "std": 0.9836507146961957,
+            "min": 0.0,
+            "25%": 1.0,
+            "50%": 1.0,
+            "75%": 2.0,
+            "max": 5.0
+          },
+          "coat_length": {
+            "count": 97.0,
+            "mean": 1.0206185567010309,
+            "std": 0.20306923302672383,
+            "min": 0.0,
+            "25%": 1.0,
+            "50%": 1.0,
+            "75%": 1.0,
+            "max": 2.0
+          },
+          "good_with_strangers": {
+            "count": 97.0,
+            "mean": 3.402061855670103,
+            "std": 1.1148597988689073,
+            "min": 0.0,
+            "25%": 3.0,
+            "50%": 3.0,
+            "75%": 4.0,
+            "max": 5.0
+          },
+          "playfulness": {
+            "count": 97.0,
+            "mean": 3.6082474226804124,
+            "std": 0.9848508879407396,
+            "min": 0.0,
+            "25%": 3.0,
+            "50%": 4.0,
+            "75%": 4.0,
+            "max": 5.0
+          },
+          "protectiveness": {
+            "count": 97.0,
+            "mean": 3.6597938144329896,
+            "std": 1.1626711158841696,
+            "min": 0.0,
+            "25%": 3.0,
+            "50%": 4.0,
+            "75%": 5.0,
+            "max": 5.0
+          },
+          "trainability": {
+            "count": 97.0,
+            "mean": 3.804123711340206,
+            "std": 0.9750980213305476,
+            "min": 0.0,
+            "25%": 3.0,
+            "50%": 4.0,
+            "75%": 5.0,
+            "max": 5.0
+          },
+          "energy": {
+            "count": 97.0,
+            "mean": 3.6804123711340204,
+            "std": 0.9076800986647375,
+            "min": 0.0,
+            "25%": 3.0,
+            "50%": 4.0,
+            "75%": 4.0,
+            "max": 5.0
+          },
+          "barking": {
+            "count": 97.0,
+            "mean": 2.9587628865979383,
+            "std": 1.257622805246038,
+            "min": 0.0,
+            "25%": 2.0,
+            "50%": 3.0,
+            "75%": 4.0,
+            "max": 5.0
+          }
+        },
+        "additional_statistics": {
+          "min_life_expectancy": {
+            "variance": 2.7330326460481107,
+            "skewness": -0.4839078167846984,
+            "kurtosis": 0.18929804369586467
+          },
+          "max_life_expectancy": {
+            "variance": 3.5,
+            "skewness": -0.06822194859343464,
+            "kurtosis": 0.4124300111982082
+          },
+          "max_height_male": {
+            "variance": 48.29821735395189,
+            "skewness": -0.2565034735252267,
+            "kurtosis": -1.2099030335581666
+          },
+          "max_height_female": {
+            "variance": 46.734321305841924,
+            "skewness": -0.28761206326860866,
+            "kurtosis": -1.232692715289229
+          },
+          "max_weight_male": {
+            "variance": 1873.2816838487972,
+            "skewness": 0.8065817704197162,
+            "kurtosis": 0.24999595149554477
+          },
+          "max_weight_female": {
+            "variance": 1330.3175515463918,
+            "skewness": 0.8894223248497545,
+            "kurtosis": 1.3764366787557454
+          },
+          "min_height_male": {
+            "variance": 45.53500859106529,
+            "skewness": -0.1954972283757637,
+            "kurtosis": -1.132624231947943
+          },
+          "min_height_female": {
+            "variance": 44.30863402061856,
+            "skewness": -0.231284559652368,
+            "kurtosis": -1.1615056714617993
+          },
+          "min_weight_male": {
+            "variance": 1219.9254231099655,
+            "skewness": 0.8733258020364737,
+            "kurtosis": 0.1513167699153315
+          },
+          "min_weight_female": {
+            "variance": 812.8555777491409,
+            "skewness": 0.9384086801476877,
+            "kurtosis": 1.1647751032053333
+          },
+          "good_with_children": {
+            "variance": 1.3266752577319587,
+            "skewness": -0.671955726818598,
+            "kurtosis": 0.6678361495110572
+          },
+          "good_with_other_dogs": {
+            "variance": 1.207689003436426,
+            "skewness": -0.429832889152494,
+            "kurtosis": 0.9611501805031133
+          },
+          "shedding": {
+            "variance": 0.8490120274914089,
+            "skewness": -0.46724673290971286,
+            "kurtosis": 0.0935963729051914
+          },
+          "grooming": {
+            "variance": 1.0695876288659794,
+            "skewness": 0.49042669292725555,
+            "kurtosis": 0.03136656730945653
+          },
+          "drooling": {
+            "variance": 0.9675687285223367,
+            "skewness": 1.303878376832975,
+            "kurtosis": 1.7112921089519557
+          },
+          "coat_length": {
+            "variance": 0.04123711340206187,
+            "skewness": 2.2281420898635766,
+            "kurtosis": 21.97758083706606
+          },
+          "good_with_strangers": {
+            "variance": 1.2429123711340206,
+            "skewness": -0.6234641962929093,
+            "kurtosis": 1.3209217959055937
+          },
+          "playfulness": {
+            "variance": 0.9699312714776632,
+            "skewness": -1.1438989096498808,
+            "kurtosis": 3.72827381289494
+          },
+          "protectiveness": {
+            "variance": 1.35180412371134,
+            "skewness": -0.8440785769395748,
+            "kurtosis": 1.271945800989807
+          },
+          "trainability": {
+            "variance": 0.9508161512027491,
+            "skewness": -0.8332347795756122,
+            "kurtosis": 1.5271929124166124
+          },
+          "energy": {
+            "variance": 0.8238831615120277,
+            "skewness": -1.10939769797154,
+            "kurtosis": 3.957840443222086
+          },
+          "barking": {
+            "variance": 1.581615120274914,
+            "skewness": -0.2417437185298107,
+            "kurtosis": -0.3345053452263902
+          }
+        }
+      }
+    },
+    {
+      "step": "correlation_analysis",
+      "result": {
+        "correlation_matrix": {
+          "min_life_expectancy": {
+            "min_life_expectancy": 1.0,
+            "max_life_expectancy": 0.714,
+            "max_height_male": -0.457,
+            "max_height_female": -0.448,
+            "max_weight_male": -0.591,
+            "max_weight_female": -0.59,
+            "min_height_male": -0.46,
+            "min_height_female": -0.453,
+            "min_weight_male": -0.601,
+            "min_weight_female": -0.62,
+            "good_with_children": 0.043,
+            "good_with_other_dogs": 0.031,
+            "shedding": -0.236,
+            "grooming": 0.058,
+            "drooling": -0.549,
+            "coat_length": 0.102,
+            "good_with_strangers": 0.141,
+            "playfulness": 0.152,
+            "protectiveness": -0.174,
+            "trainability": 0.031,
+            "energy": 0.078,
+            "barking": 0.198
+          },
+          "max_life_expectancy": {
+            "min_life_expectancy": 0.714,
+            "max_life_expectancy": 1.0,
+            "max_height_male": -0.472,
+            "max_height_female": -0.465,
+            "max_weight_male": -0.609,
+            "max_weight_female": -0.607,
+            "min_height_male": -0.479,
+            "min_height_female": -0.478,
+            "min_weight_male": -0.618,
+            "min_weight_female": -0.636,
+            "good_with_children": 0.048,
+            "good_with_other_dogs": 0.03,
+            "shedding": -0.393,
+            "grooming": 0.258,
+            "drooling": -0.617,
+            "coat_length": 0.11,
+            "good_with_strangers": 0.125,
+            "playfulness": 0.107,
+            "protectiveness": -0.192,
+            "trainability": -0.057,
+            "energy": 0.098,
+            "barking": 0.226
+          },
+          "max_height_male": {
+            "min_life_expectancy": -0.457,
+            "max_life_expectancy": -0.472,
+            "max_height_male": 1.0,
+            "max_height_female": 0.996,
+            "max_weight_male": 0.862,
+            "max_weight_female": 0.854,
+            "min_height_male": 0.973,
+            "min_height_female": 0.97,
+            "min_weight_male": 0.845,
+            "min_weight_female": 0.846,
+            "good_with_children": -0.136,
+            "good_with_other_dogs": -0.201,
+            "shedding": 0.237,
+            "grooming": -0.251,
+            "drooling": 0.323,
+            "coat_length": -0.182,
+            "good_with_strangers": -0.296,
+            "playfulness": -0.314,
+            "protectiveness": -0.006,
+            "trainability": -0.013,
+            "energy": 0.081,
+            "barking": -0.284
+          },
+          "max_height_female": {
+            "min_life_expectancy": -0.448,
+            "max_life_expectancy": -0.465,
+            "max_height_male": 0.996,
+            "max_height_female": 1.0,
+            "max_weight_male": 0.856,
+            "max_weight_female": 0.85,
+            "min_height_male": 0.975,
+            "min_height_female": 0.975,
+            "min_weight_male": 0.841,
+            "min_weight_female": 0.844,
+            "good_with_children": -0.129,
+            "good_with_other_dogs": -0.197,
+            "shedding": 0.247,
+            "grooming": -0.254,
+            "drooling": 0.332,
+            "coat_length": -0.183,
+            "good_with_strangers": -0.272,
+            "playfulness": -0.29,
+            "protectiveness": 0.009,
+            "trainability": -0.004,
+            "energy": 0.114,
+            "barking": -0.28
+          },
+          "max_weight_male": {
+            "min_life_expectancy": -0.591,
+            "max_life_expectancy": -0.609,
+            "max_height_male": 0.862,
+            "max_height_female": 0.856,
+            "max_weight_male": 1.0,
+            "max_weight_female": 0.982,
+            "min_height_male": 0.867,
+            "min_height_female": 0.862,
+            "min_weight_male": 0.973,
+            "min_weight_female": 0.967,
+            "good_with_children": -0.193,
+            "good_with_other_dogs": -0.254,
+            "shedding": 0.282,
+            "grooming": -0.164,
+            "drooling": 0.499,
+            "coat_length": -0.093,
+            "good_with_strangers": -0.314,
+            "playfulness": -0.353,
+            "protectiveness": 0.152,
+            "trainability": -0.05,
+            "energy": -0.065,
+            "barking": -0.258
+          },
+          "max_weight_female": {
+            "min_life_expectancy": -0.59,
+            "max_life_expectancy": -0.607,
+            "max_height_male": 0.854,
+            "max_height_female": 0.85,
+            "max_weight_male": 0.982,
+            "max_weight_female": 1.0,
+            "min_height_male": 0.848,
+            "min_height_female": 0.844,
+            "min_weight_male": 0.942,
+            "min_weight_female": 0.971,
+            "good_with_children": -0.166,
+            "good_with_other_dogs": -0.24,
+            "shedding": 0.284,
+            "grooming": -0.175,
+            "drooling": 0.502,
+            "coat_length": -0.085,
+            "good_with_strangers": -0.301,
+            "playfulness": -0.333,
+            "protectiveness": 0.144,
+            "trainability": -0.031,
+            "energy": -0.033,
+            "barking": -0.261
+          },
+          "min_height_male": {
+            "min_life_expectancy": -0.46,
+            "max_life_expectancy": -0.479,
+            "max_height_male": 0.973,
+            "max_height_female": 0.975,
+            "max_weight_male": 0.867,
+            "max_weight_female": 0.848,
+            "min_height_male": 1.0,
+            "min_height_female": 0.997,
+            "min_weight_male": 0.875,
+            "min_weight_female": 0.865,
+            "good_with_children": -0.122,
+            "good_with_other_dogs": -0.197,
+            "shedding": 0.265,
+            "grooming": -0.199,
+            "drooling": 0.353,
+            "coat_length": -0.185,
+            "good_with_strangers": -0.234,
+            "playfulness": -0.289,
+            "protectiveness": 0.059,
+            "trainability": -0.043,
+            "energy": 0.12,
+            "barking": -0.262
+          },
+          "min_height_female": {
+            "min_life_expectancy": -0.453,
+            "max_life_expectancy": -0.478,
+            "max_height_male": 0.97,
+            "max_height_female": 0.975,
+            "max_weight_male": 0.862,
+            "max_weight_female": 0.844,
+            "min_height_male": 0.997,
+            "min_height_female": 1.0,
+            "min_weight_male": 0.872,
+            "min_weight_female": 0.864,
+            "good_with_children": -0.118,
+            "good_with_other_dogs": -0.195,
+            "shedding": 0.27,
+            "grooming": -0.213,
+            "drooling": 0.352,
+            "coat_length": -0.186,
+            "good_with_strangers": -0.226,
+            "playfulness": -0.285,
+            "protectiveness": 0.057,
+            "trainability": -0.03,
+            "energy": 0.128,
+            "barking": -0.265
+          },
+          "min_weight_male": {
+            "min_life_expectancy": -0.601,
+            "max_life_expectancy": -0.618,
+            "max_height_male": 0.845,
+            "max_height_female": 0.841,
+            "max_weight_male": 0.973,
+            "max_weight_female": 0.942,
+            "min_height_male": 0.875,
+            "min_height_female": 0.872,
+            "min_weight_male": 1.0,
+            "min_weight_female": 0.98,
+            "good_with_children": -0.195,
+            "good_with_other_dogs": -0.264,
+            "shedding": 0.248,
+            "grooming": -0.174,
+            "drooling": 0.52,
+            "coat_length": -0.128,
+            "good_with_strangers": -0.268,
+            "playfulness": -0.357,
+            "protectiveness": 0.162,
+            "trainability": -0.065,
+            "energy": -0.069,
+            "barking": -0.256
+          },
+          "min_weight_female": {
+            "min_life_expectancy": -0.62,
+            "max_life_expectancy": -0.636,
+            "max_height_male": 0.846,
+            "max_height_female": 0.844,
+            "max_weight_male": 0.967,
+            "max_weight_female": 0.971,
+            "min_height_male": 0.865,
+            "min_height_female": 0.864,
+            "min_weight_male": 0.98,
+            "min_weight_female": 1.0,
+            "good_with_children": -0.158,
+            "good_with_other_dogs": -0.232,
+            "shedding": 0.264,
+            "grooming": -0.18,
+            "drooling": 0.54,
+            "coat_length": -0.117,
+            "good_with_strangers": -0.247,
+            "playfulness": -0.331,
+            "protectiveness": 0.169,
+            "trainability": -0.032,
+            "energy": -0.042,
+            "barking": -0.255
+          },
+          "good_with_children": {
+            "min_life_expectancy": 0.043,
+            "max_life_expectancy": 0.048,
+            "max_height_male": -0.136,
+            "max_height_female": -0.129,
+            "max_weight_male": -0.193,
+            "max_weight_female": -0.166,
+            "min_height_male": -0.122,
+            "min_height_female": -0.118,
+            "min_weight_male": -0.195,
+            "min_weight_female": -0.158,
+            "good_with_children": 1.0,
+            "good_with_other_dogs": 0.61,
+            "shedding": 0.151,
+            "grooming": 0.258,
+            "drooling": 0.165,
+            "coat_length": 0.059,
+            "good_with_strangers": 0.644,
+            "playfulness": 0.53,
+            "protectiveness": 0.035,
+            "trainability": 0.435,
+            "energy": 0.208,
+            "barking": 0.189
+          },
+          "good_with_other_dogs": {
+            "min_life_expectancy": 0.031,
+            "max_life_expectancy": 0.03,
+            "max_height_male": -0.201,
+            "max_height_female": -0.197,
+            "max_weight_male": -0.254,
+            "max_weight_female": -0.24,
+            "min_height_male": -0.197,
+            "min_height_female": -0.195,
+            "min_weight_male": -0.264,
+            "min_weight_female": -0.232,
+            "good_with_children": 0.61,
+            "good_with_other_dogs": 1.0,
+            "shedding": 0.172,
+            "grooming": 0.187,
+            "drooling": 0.168,
+            "coat_length": 0.239,
+            "good_with_strangers": 0.491,
+            "playfulness": 0.441,
+            "protectiveness": -0.093,
+            "trainability": 0.315,
+            "energy": 0.144,
+            "barking": 0.179
+          },
+          "shedding": {
+            "min_life_expectancy": -0.236,
+            "max_life_expectancy": -0.393,
+            "max_height_male": 0.237,
+            "max_height_female": 0.247,
+            "max_weight_male": 0.282,
+            "max_weight_female": 0.284,
+            "min_height_male": 0.265,
+            "min_height_female": 0.27,
+            "min_weight_male": 0.248,
+            "min_weight_female": 0.264,
+            "good_with_children": 0.151,
+            "good_with_other_dogs": 0.172,
+            "shedding": 1.0,
+            "grooming": -0.118,
+            "drooling": 0.204,
+            "coat_length": -0.01,
+            "good_with_strangers": 0.153,
+            "playfulness": 0.256,
+            "protectiveness": 0.208,
+            "trainability": 0.164,
+            "energy": 0.314,
+            "barking": 0.057
+          },
+          "grooming": {
+            "min_life_expectancy": 0.058,
+            "max_life_expectancy": 0.258,
+            "max_height_male": -0.251,
+            "max_height_female": -0.254,
+            "max_weight_male": -0.164,
+            "max_weight_female": -0.175,
+            "min_height_male": -0.199,
+            "min_height_female": -0.213,
+            "min_weight_male": -0.174,
+            "min_weight_female": -0.18,
+            "good_with_children": 0.258,
+            "good_with_other_dogs": 0.187,
+            "shedding": -0.118,
+            "grooming": 1.0,
+            "drooling": -0.085,
+            "coat_length": 0.084,
+            "good_with_strangers": 0.262,
+            "playfulness": 0.214,
+            "protectiveness": 0.088,
+            "trainability": 0.092,
+            "energy": 0.131,
+            "barking": 0.237
+          },
+          "drooling": {
+            "min_life_expectancy": -0.549,
+            "max_life_expectancy": -0.617,
+            "max_height_male": 0.323,
+            "max_height_female": 0.332,
+            "max_weight_male": 0.499,
+            "max_weight_female": 0.502,
+            "min_height_male": 0.353,
+            "min_height_female": 0.352,
+            "min_weight_male": 0.52,
+            "min_weight_female": 0.54,
+            "good_with_children": 0.165,
+            "good_with_other_dogs": 0.168,
+            "shedding": 0.204,
+            "grooming": -0.085,
+            "drooling": 1.0,
+            "coat_length": 0.04,
+            "good_with_strangers": 0.151,
+            "playfulness": 0.102,
+            "protectiveness": 0.295,
+            "trainability": 0.171,
+            "energy": -0.01,
+            "barking": -0.013
+          },
+          "coat_length": {
+            "min_life_expectancy": 0.102,
+            "max_life_expectancy": 0.11,
+            "max_height_male": -0.182,
+            "max_height_female": -0.183,
+            "max_weight_male": -0.093,
+            "max_weight_female": -0.085,
+            "min_height_male": -0.185,
+            "min_height_female": -0.186,
+            "min_weight_male": -0.128,
+            "min_weight_female": -0.117,
+            "good_with_children": 0.059,
+            "good_with_other_dogs": 0.239,
+            "shedding": -0.01,
+            "grooming": 0.084,
+            "drooling": 0.04,
+            "coat_length": 1.0,
+            "good_with_strangers": 0.101,
+            "playfulness": 0.197,
+            "protectiveness": 0.162,
+            "trainability": 0.178,
+            "energy": 0.149,
+            "barking": 0.289
+          },
+          "good_with_strangers": {
+            "min_life_expectancy": 0.141,
+            "max_life_expectancy": 0.125,
+            "max_height_male": -0.296,
+            "max_height_female": -0.272,
+            "max_weight_male": -0.314,
+            "max_weight_female": -0.301,
+            "min_height_male": -0.234,
+            "min_height_female": -0.226,
+            "min_weight_male": -0.268,
+            "min_weight_female": -0.247,
+            "good_with_children": 0.644,
+            "good_with_other_dogs": 0.491,
+            "shedding": 0.153,
+            "grooming": 0.262,
+            "drooling": 0.151,
+            "coat_length": 0.101,
+            "good_with_strangers": 1.0,
+            "playfulness": 0.695,
+            "protectiveness": 0.099,
+            "trainability": 0.37,
+            "energy": 0.303,
+            "barking": 0.242
+          },
+          "playfulness": {
+            "min_life_expectancy": 0.152,
+            "max_life_expectancy": 0.107,
+            "max_height_male": -0.314,
+            "max_height_female": -0.29,
+            "max_weight_male": -0.353,
+            "max_weight_female": -0.333,
+            "min_height_male": -0.289,
+            "min_height_female": -0.285,
+            "min_weight_male": -0.357,
+            "min_weight_female": -0.331,
+            "good_with_children": 0.53,
+            "good_with_other_dogs": 0.441,
+            "shedding": 0.256,
+            "grooming": 0.214,
+            "drooling": 0.102,
+            "coat_length": 0.197,
+            "good_with_strangers": 0.695,
+            "playfulness": 1.0,
+            "protectiveness": 0.264,
+            "trainability": 0.44,
+            "energy": 0.569,
+            "barking": 0.416
+          },
+          "protectiveness": {
+            "min_life_expectancy": -0.174,
+            "max_life_expectancy": -0.192,
+            "max_height_male": -0.006,
+            "max_height_female": 0.009,
+            "max_weight_male": 0.152,
+            "max_weight_female": 0.144,
+            "min_height_male": 0.059,
+            "min_height_female": 0.057,
+            "min_weight_male": 0.162,
+            "min_weight_female": 0.169,
+            "good_with_children": 0.035,
+            "good_with_other_dogs": -0.093,
+            "shedding": 0.208,
+            "grooming": 0.088,
+            "drooling": 0.295,
+            "coat_length": 0.162,
+            "good_with_strangers": 0.099,
+            "playfulness": 0.264,
+            "protectiveness": 1.0,
+            "trainability": 0.097,
+            "energy": 0.172,
+            "barking": 0.19
+          },
+          "trainability": {
+            "min_life_expectancy": 0.031,
+            "max_life_expectancy": -0.057,
+            "max_height_male": -0.013,
+            "max_height_female": -0.004,
+            "max_weight_male": -0.05,
+            "max_weight_female": -0.031,
+            "min_height_male": -0.043,
+            "min_height_female": -0.03,
+            "min_weight_male": -0.065,
+            "min_weight_female": -0.032,
+            "good_with_children": 0.435,
+            "good_with_other_dogs": 0.315,
+            "shedding": 0.164,
+            "grooming": 0.092,
+            "drooling": 0.171,
+            "coat_length": 0.178,
+            "good_with_strangers": 0.37,
+            "playfulness": 0.44,
+            "protectiveness": 0.097,
+            "trainability": 1.0,
+            "energy": 0.364,
+            "barking": 0.18
+          },
+          "energy": {
+            "min_life_expectancy": 0.078,
+            "max_life_expectancy": 0.098,
+            "max_height_male": 0.081,
+            "max_height_female": 0.114,
+            "max_weight_male": -0.065,
+            "max_weight_female": -0.033,
+            "min_height_male": 0.12,
+            "min_height_female": 0.128,
+            "min_weight_male": -0.069,
+            "min_weight_female": -0.042,
+            "good_with_children": 0.208,
+            "good_with_other_dogs": 0.144,
+            "shedding": 0.314,
+            "grooming": 0.131,
+            "drooling": -0.01,
+            "coat_length": 0.149,
+            "good_with_strangers": 0.303,
+            "playfulness": 0.569,
+            "protectiveness": 0.172,
+            "trainability": 0.364,
+            "energy": 1.0,
+            "barking": 0.28
+          },
+          "barking": {
+            "min_life_expectancy": 0.198,
+            "max_life_expectancy": 0.226,
+            "max_height_male": -0.284,
+            "max_height_female": -0.28,
+            "max_weight_male": -0.258,
+            "max_weight_female": -0.261,
+            "min_height_male": -0.262,
+            "min_height_female": -0.265,
+            "min_weight_male": -0.256,
+            "min_weight_female": -0.255,
+            "good_with_children": 0.189,
+            "good_with_other_dogs": 0.179,
+            "shedding": 0.057,
+            "grooming": 0.237,
+            "drooling": -0.013,
+            "coat_length": 0.289,
+            "good_with_strangers": 0.242,
+            "playfulness": 0.416,
+            "protectiveness": 0.19,
+            "trainability": 0.18,
+            "energy": 0.28,
+            "barking": 1.0
+          }
+        },
+        "high_correlations": [
+          {
+            "variable_1": "min_height_male",
+            "variable_2": "min_height_female",
+            "correlation": 0.997
+          },
+          {
+            "variable_1": "max_height_male",
+            "variable_2": "max_height_female",
+            "correlation": 0.996
+          },
+          {
+            "variable_1": "max_weight_male",
+            "variable_2": "max_weight_female",
+            "correlation": 0.982
+          },
+          {
+            "variable_1": "min_weight_male",
+            "variable_2": "min_weight_female",
+            "correlation": 0.98
+          },
+          {
+            "variable_1": "max_height_female",
+            "variable_2": "min_height_male",
+            "correlation": 0.975
+          },
+          {
+            "variable_1": "max_height_female",
+            "variable_2": "min_height_female",
+            "correlation": 0.975
+          },
+          {
+            "variable_1": "max_height_male",
+            "variable_2": "min_height_male",
+            "correlation": 0.973
+          },
+          {
+            "variable_1": "max_weight_male",
+            "variable_2": "min_weight_male",
+            "correlation": 0.973
+          },
+          {
+            "variable_1": "max_weight_female",
+            "variable_2": "min_weight_female",
+            "correlation": 0.971
+          },
+          {
+            "variable_1": "max_height_male",
+            "variable_2": "min_height_female",
+            "correlation": 0.97
+          },
+          {
+            "variable_1": "max_weight_male",
+            "variable_2": "min_weight_female",
+            "correlation": 0.967
+          },
+          {
+            "variable_1": "max_weight_female",
+            "variable_2": "min_weight_male",
+            "correlation": 0.942
+          },
+          {
+            "variable_1": "min_height_male",
+            "variable_2": "min_weight_male",
+            "correlation": 0.875
+          },
+          {
+            "variable_1": "min_height_female",
+            "variable_2": "min_weight_male",
+            "correlation": 0.872
+          },
+          {
+            "variable_1": "max_weight_male",
+            "variable_2": "min_height_male",
+            "correlation": 0.867
+          },
+          {
+            "variable_1": "min_height_male",
+            "variable_2": "min_weight_female",
+            "correlation": 0.865
+          },
+          {
+            "variable_1": "min_height_female",
+            "variable_2": "min_weight_female",
+            "correlation": 0.864
+          },
+          {
+            "variable_1": "max_height_male",
+            "variable_2": "max_weight_male",
+            "correlation": 0.862
+          },
+          {
+            "variable_1": "max_weight_male",
+            "variable_2": "min_height_female",
+            "correlation": 0.862
+          },
+          {
+            "variable_1": "max_height_female",
+            "variable_2": "max_weight_male",
+            "correlation": 0.856
+          },
+          {
+            "variable_1": "max_height_male",
+            "variable_2": "max_weight_female",
+            "correlation": 0.854
+          },
+          {
+            "variable_1": "max_height_female",
+            "variable_2": "max_weight_female",
+            "correlation": 0.85
+          },
+          {
+            "variable_1": "max_weight_female",
+            "variable_2": "min_height_male",
+            "correlation": 0.848
+          },
+          {
+            "variable_1": "max_height_male",
+            "variable_2": "min_weight_female",
+            "correlation": 0.846
+          },
+          {
+            "variable_1": "max_height_male",
+            "variable_2": "min_weight_male",
+            "correlation": 0.845
+          },
+          {
+            "variable_1": "max_height_female",
+            "variable_2": "min_weight_female",
+            "correlation": 0.844
+          },
+          {
+            "variable_1": "max_weight_female",
+            "variable_2": "min_height_female",
+            "correlation": 0.844
+          },
+          {
+            "variable_1": "max_height_female",
+            "variable_2": "min_weight_male",
+            "correlation": 0.841
+          },
+          {
+            "variable_1": "min_life_expectancy",
+            "variable_2": "max_life_expectancy",
+            "correlation": 0.714
+          },
+          {
+            "variable_1": "good_with_strangers",
+            "variable_2": "playfulness",
+            "correlation": 0.695
+          },
+          {
+            "variable_1": "good_with_children",
+            "variable_2": "good_with_strangers",
+            "correlation": 0.644
+          },
+          {
+            "variable_1": "max_life_expectancy",
+            "variable_2": "min_weight_female",
+            "correlation": -0.636
+          },
+          {
+            "variable_1": "min_life_expectancy",
+            "variable_2": "min_weight_female",
+            "correlation": -0.62
+          },
+          {
+            "variable_1": "max_life_expectancy",
+            "variable_2": "min_weight_male",
+            "correlation": -0.618
+          },
+          {
+            "variable_1": "max_life_expectancy",
+            "variable_2": "drooling",
+            "correlation": -0.617
+          },
+          {
+            "variable_1": "good_with_children",
+            "variable_2": "good_with_other_dogs",
+            "correlation": 0.61
+          },
+          {
+            "variable_1": "max_life_expectancy",
+            "variable_2": "max_weight_male",
+            "correlation": -0.609
+          },
+          {
+            "variable_1": "max_life_expectancy",
+            "variable_2": "max_weight_female",
+            "correlation": -0.607
+          },
+          {
+            "variable_1": "min_life_expectancy",
+            "variable_2": "min_weight_male",
+            "correlation": -0.601
+          },
+          {
+            "variable_1": "min_life_expectancy",
+            "variable_2": "max_weight_male",
+            "correlation": -0.591
+          },
+          {
+            "variable_1": "min_life_expectancy",
+            "variable_2": "max_weight_female",
+            "correlation": -0.59
+          },
+          {
+            "variable_1": "playfulness",
+            "variable_2": "energy",
+            "correlation": 0.569
+          },
+          {
+            "variable_1": "min_life_expectancy",
+            "variable_2": "drooling",
+            "correlation": -0.549
+          },
+          {
+            "variable_1": "min_weight_female",
+            "variable_2": "drooling",
+            "correlation": 0.54
+          },
+          {
+            "variable_1": "good_with_children",
+            "variable_2": "playfulness",
+            "correlation": 0.53
+          },
+          {
+            "variable_1": "min_weight_male",
+            "variable_2": "drooling",
+            "correlation": 0.52
+          },
+          {
+            "variable_1": "max_weight_female",
+            "variable_2": "drooling",
+            "correlation": 0.502
+          },
+          {
+            "variable_1": "max_weight_male",
+            "variable_2": "drooling",
+            "correlation": 0.499
+          },
+          {
+            "variable_1": "good_with_other_dogs",
+            "variable_2": "good_with_strangers",
+            "correlation": 0.491
+          },
+          {
+            "variable_1": "max_life_expectancy",
+            "variable_2": "min_height_male",
+            "correlation": -0.479
+          },
+          {
+            "variable_1": "max_life_expectancy",
+            "variable_2": "min_height_female",
+            "correlation": -0.478
+          },
+          {
+            "variable_1": "max_life_expectancy",
+            "variable_2": "max_height_male",
+            "correlation": -0.472
+          },
+          {
+            "variable_1": "max_life_expectancy",
+            "variable_2": "max_height_female",
+            "correlation": -0.465
+          },
+          {
+            "variable_1": "min_life_expectancy",
+            "variable_2": "min_height_male",
+            "correlation": -0.46
+          },
+          {
+            "variable_1": "min_life_expectancy",
+            "variable_2": "max_height_male",
+            "correlation": -0.457
+          },
+          {
+            "variable_1": "min_life_expectancy",
+            "variable_2": "min_height_female",
+            "correlation": -0.453
+          },
+          {
+            "variable_1": "min_life_expectancy",
+            "variable_2": "max_height_female",
+            "correlation": -0.448
+          },
+          {
+            "variable_1": "good_with_other_dogs",
+            "variable_2": "playfulness",
+            "correlation": 0.441
+          },
+          {
+            "variable_1": "playfulness",
+            "variable_2": "trainability",
+            "correlation": 0.44
+          },
+          {
+            "variable_1": "good_with_children",
+            "variable_2": "trainability",
+            "correlation": 0.435
+          },
+          {
+            "variable_1": "playfulness",
+            "variable_2": "barking",
+            "correlation": 0.416
+          },
+          {
+            "variable_1": "max_life_expectancy",
+            "variable_2": "shedding",
+            "correlation": -0.393
+          },
+          {
+            "variable_1": "good_with_strangers",
+            "variable_2": "trainability",
+            "correlation": 0.37
+          },
+          {
+            "variable_1": "trainability",
+            "variable_2": "energy",
+            "correlation": 0.364
+          },
+          {
+            "variable_1": "min_weight_male",
+            "variable_2": "playfulness",
+            "correlation": -0.357
+          },
+          {
+            "variable_1": "max_weight_male",
+            "variable_2": "playfulness",
+            "correlation": -0.353
+          },
+          {
+            "variable_1": "min_height_male",
+            "variable_2": "drooling",
+            "correlation": 0.353
+          },
+          {
+            "variable_1": "min_height_female",
+            "variable_2": "drooling",
+            "correlation": 0.352
+          },
+          {
+            "variable_1": "max_weight_female",
+            "variable_2": "playfulness",
+            "correlation": -0.333
+          },
+          {
+            "variable_1": "max_height_female",
+            "variable_2": "drooling",
+            "correlation": 0.332
+          },
+          {
+            "variable_1": "min_weight_female",
+            "variable_2": "playfulness",
+            "correlation": -0.331
+          },
+          {
+            "variable_1": "max_height_male",
+            "variable_2": "drooling",
+            "correlation": 0.323
+          },
+          {
+            "variable_1": "good_with_other_dogs",
+            "variable_2": "trainability",
+            "correlation": 0.315
+          },
+          {
+            "variable_1": "max_height_male",
+            "variable_2": "playfulness",
+            "correlation": -0.314
+          },
+          {
+            "variable_1": "max_weight_male",
+            "variable_2": "good_with_strangers",
+            "correlation": -0.314
+          },
+          {
+            "variable_1": "shedding",
+            "variable_2": "energy",
+            "correlation": 0.314
+          },
+          {
+            "variable_1": "good_with_strangers",
+            "variable_2": "energy",
+            "correlation": 0.303
+          },
+          {
+            "variable_1": "max_weight_female",
+            "variable_2": "good_with_strangers",
+            "correlation": -0.301
+          }
+        ],
+        "method": "pearson"
+      }
+    }
+  ],
+  "visualizations": [
+    {
+      "type": "distribution_grid",
+      "columns": [
+        "min_life_expectancy",
+        "max_life_expectancy",
+        "max_height_male",
+        "max_height_female",
+        "max_weight_male",
+        "max_weight_female",
+        "min_height_male",
+        "min_height_female",
+        "min_weight_male",
+        "min_weight_female",
+        "good_with_children",
+        "good_with_other_dogs",
+        "shedding",
+        "grooming",
+        "drooling",
+        "coat_length",
+        "good_with_strangers",
+        "playfulness",
+        "protectiveness",
+        "trainability",
+        "energy",
+        "barking"
+      ],
+      "file_path": "outputs/distribution_grid_20260414_160520.png"
+    },
+    {
+      "type": "correlation_heatmap",
+      "method": "pearson",
+      "file_path": "outputs/correlation_heatmap_20260414_160521.png"
+    }
+  ],
+  "summary": "**Dataset Overview**\nThis dataset contains 97 rows and 23 columns. \n\n**Data Types**\n- Numeric columns (22): min_life_expectancy, max_life_expectancy, max_height_male, max_height_female, max_weight_male...\n- Categorical columns (0): \n\n**Analysis Completed**\nGenerated 2 visualizations and 2 statistical analyses.\n\n**Suggested Actions**\n1. Review the visualizations to identify patterns and trends\n2. Examine correlation patterns between numeric variables\n3. Investigate any outliers or unusual distributions\n\n**Potential Use Cases**\nThis data can be used for predictive modeling, trend analysis, and data-driven decision making based on the available features.",
+  "success": true,
+  "analysis_plan": [
+    {
+      "tool": "Statistical Analysis",
+      "purpose": "Descriptive Statistics"
+    },
+    {
+      "tool": "Statistical Analysis",
+      "purpose": "Correlation Analysis"
+    },
+    {
+      "tool": "Visualization",
+      "purpose": "Distribution Plots"
+    },
+    {
+      "tool": "Visualization",
+      "purpose": "Correlation Heatmap"
+    },
+    {
+      "tool": "Analysis Focus",
+      "purpose": "Investigate data quality"
+    },
+    {
+      "tool": "Analysis Focus",
+      "purpose": "Investigate variable relationships"
+    }
+  ]
+}
