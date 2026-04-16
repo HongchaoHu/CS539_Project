@@ -40,7 +40,7 @@ const elements = {
 document.addEventListener('DOMContentLoaded', () => {
     checkHealth();
     setupEventListeners();
-    elements.queryInput.value = "Provide a comprehensive exploratory data analysis with key insights, patterns, and visualizations.";
+    elements.queryInput.value = '';
 });
 
 // ==================== Health Check ====================
