@@ -29,7 +29,6 @@ const elements = {
     vizValue: document.getElementById('vizValue'),
     qualityBadge: document.getElementById('qualityBadge'),
     visualizationsContainer: document.getElementById('visualizationsContainer'),
-    stepsContainer: document.getElementById('stepsContainer'),
     evaluationCard: document.getElementById('evaluationCard'),
     evaluationContent: document.getElementById('evaluationContent'),
     downloadArtifactBtn: document.getElementById('downloadArtifactBtn'),
@@ -261,9 +260,6 @@ function displayResults(data) {
     // Display visualizations
     displayVisualizations(currentVisualizations);
 
-    // Display analysis steps
-    displayAnalysisSteps(data.analysis_plan || []);
-
     // Display evaluation details if available
     if (data.evaluation) {
         displayEvaluation(data.evaluation);
@@ -301,30 +297,6 @@ function displayVisualizations(visualizations) {
         vizItem.appendChild(img);
         vizItem.appendChild(label);
         elements.visualizationsContainer.appendChild(vizItem);
-    });
-}
-
-function displayAnalysisSteps(steps) {
-    elements.stepsContainer.innerHTML = '';
-    
-    if (steps.length === 0) {
-        elements.stepsContainer.innerHTML = '<p style="color: var(--text-secondary);">No analysis steps recorded.</p>';
-        return;
-    }
-
-    steps.forEach((step, index) => {
-        const stepItem = document.createElement('div');
-        stepItem.className = 'step-item';
-        
-        const stepTitle = document.createElement('h4');
-        stepTitle.textContent = `${index + 1}. ${step.tool || 'Unknown Tool'}`;
-        
-        const stepDesc = document.createElement('p');
-        stepDesc.textContent = step.purpose || 'No description available';
-        
-        stepItem.appendChild(stepTitle);
-        stepItem.appendChild(stepDesc);
-        elements.stepsContainer.appendChild(stepItem);
     });
 }
 
