@@ -221,15 +221,16 @@ Execution Context (already available):
 Rules:
 1) Return only code, no explanation text.
 2) Do not read files.
-3) Use only pandas/matplotlib/seaborn.
-4) Create at least one visualization that matches the user request.
-5) Define analysis_results as:
+3) Libraries are preloaded in runtime. Do NOT include any import statements.
+4) Use only these preloaded objects: df, pd, plt, sns.
+5) Create at least one visualization that matches the user request.
+6) Define analysis_results as:
    analysis_results = {{
        'analysis_steps': [{{'analysis': '...', 'result': ...}}],
        'summary': '2-3 sentence summary'
    }}
-6) Do not call plt.savefig; figures are automatically captured.
-7) If required columns are missing, raise ValueError with a clear message.
+7) Do not call plt.savefig; figures are automatically captured.
+8) If required columns are missing, raise ValueError with a clear message.
 """
         
         def _extract_response_text(response_obj: Any) -> str:
@@ -280,7 +281,7 @@ Rules:
             # Retry once with a compact prompt if primary prompt produced no text.
             compact_prompt = (
                 "Return ONLY executable Python code that creates analysis_results dict with keys "
-                "summary, visualizations, analysis_steps. Use df and generate requested visualizations. "
+                "summary, visualizations, analysis_steps. Do NOT include imports. Use preloaded df, pd, plt, sns and generate requested visualizations. "
                 f"User request: {user_prompt}. Columns: {basic_info['column_names']}"
             )
             retry_response = self.model.generate_content(compact_prompt)

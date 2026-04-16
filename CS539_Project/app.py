@@ -277,12 +277,10 @@ async def analyze_dataset(request: AnalysisRequest, background_tasks: Background
         viz_files = []
         for viz in results.get("visualizations", []):
             if isinstance(viz, dict) and "file_path" in viz:
-                # Extract just the filename from the path
                 file_path = viz["file_path"]
-                filename = file_path.split("/")[-1] if "/" in file_path else file_path.split("\\")[-1]
-                viz_files.append(filename)
+                viz_files.append(os.path.basename(str(file_path)))
             elif isinstance(viz, str):
-                viz_files.append(viz)
+                viz_files.append(os.path.basename(viz))
         
         return AnalysisResponse(
             artifact_id=analysis_id,
@@ -422,7 +420,8 @@ async def get_visualization(filename: str):
     Raises:
         HTTPException: If visualization not found
     """
-    viz_path = OUTPUT_DIR / filename
+    safe_filename = os.path.basename(filename)
+    viz_path = OUTPUT_DIR / safe_filename
     
     if not viz_path.exists():
         raise HTTPException(
@@ -433,7 +432,7 @@ async def get_visualization(filename: str):
     return FileResponse(
         viz_path,
         media_type="image/png",
-        filename=filename
+        filename=safe_filename
     )
 
 

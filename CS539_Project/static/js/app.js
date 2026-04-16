@@ -283,11 +283,12 @@ function displayVisualizations(visualizations) {
     }
 
     visualizations.forEach((viz, index) => {
+        const vizName = String(viz).split('/').pop().split('\\').pop();
         const vizItem = document.createElement('div');
         vizItem.className = 'viz-item';
         
         const img = document.createElement('img');
-        img.src = `${API_BASE_URL}/visualization/${viz}`;
+        img.src = `${API_BASE_URL}/visualization/${encodeURIComponent(vizName)}`;
         img.alt = `Visualization ${index + 1}`;
         img.onerror = () => {
             img.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%23f3f4f6"/><text x="50%" y="50%" text-anchor="middle" fill="%236b7280">Image not available</text></svg>';
@@ -295,7 +296,7 @@ function displayVisualizations(visualizations) {
         
         const label = document.createElement('div');
         label.className = 'viz-label';
-        label.textContent = formatVisualizationName(viz);
+        label.textContent = formatVisualizationName(vizName);
         
         vizItem.appendChild(img);
         vizItem.appendChild(label);

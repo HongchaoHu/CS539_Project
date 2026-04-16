@@ -6,6 +6,7 @@ matplotlib figures created by that code.
 
 from datetime import datetime
 import os
+import re
 from typing import Any, Dict, List, Optional
 
 import matplotlib.pyplot as plt
@@ -30,6 +31,15 @@ class VisualizationTool:
     def set_dataframe(self, df: pd.DataFrame):
         self.df = df
 
+    def _sanitize_generated_code(self, code: str) -> str:
+        """Remove import lines because runtime already injects required libraries."""
+        sanitized_lines: List[str] = []
+        for line in code.splitlines():
+            if re.match(r"^\s*(from\s+\S+\s+import\s+.+|import\s+.+)$", line):
+                continue
+            sanitized_lines.append(line)
+        return "\n".join(sanitized_lines)
+
     def execute_generated_code(self, code: str) -> Dict[str, Any]:
         """Run generated code, capture analysis_results and save created figures."""
         if self.df is None:
@@ -43,6 +53,9 @@ class VisualizationTool:
             }
 
         execution_steps: List[str] = ["Starting generated code execution"]
+        sanitized_code = self._sanitize_generated_code(code)
+        if sanitized_code != code:
+            execution_steps.append("Removed import statements from generated code")
         existing_figures = set(plt.get_fignums())
 
         execution_env: Dict[str, Any] = {
@@ -58,7 +71,7 @@ class VisualizationTool:
 
         try:
             exec(
-                code,
+                sanitized_code,
                 {
                     "__builtins__": {
                         "len": len,
