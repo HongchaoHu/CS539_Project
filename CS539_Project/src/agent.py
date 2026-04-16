@@ -1,9 +1,11 @@
 """Data Analysis Agent
 
 Main agent that orchestrates the data analysis process using LLM and tools.
+Uses Gemini to generate custom Python analysis code based on user prompts.
 """
 
 import json
+import traceback
 from typing import Dict, Any, List, Optional
 import google.generativeai as genai
 
@@ -15,7 +17,8 @@ from .tools.visualization import VisualizationTool
 
 class DataAnalysisAgent:
     """
-    LLM-based agent for automated exploratory data analysis
+    LLM-based agent for automated exploratory data analysis.
+    Generates custom Python code based on user prompts to perform analysis.
     """
     
     def __init__(self, api_key: Optional[str] = None):
@@ -42,14 +45,14 @@ class DataAnalysisAgent:
     
     def analyze(self, file_path: str, user_prompt: str) -> Dict[str, Any]:
         """
-        Analyze a dataset based on user prompt
+        Analyze a dataset based on user prompt using Gemini-generated code.
         
         Args:
             file_path: Path to the CSV file
             user_prompt: User's analysis request
             
         Returns:
-            Dictionary containing analysis results
+            Dictionary containing analysis results and visualizations
         """
         results = {
             "user_prompt": user_prompt,
@@ -57,7 +60,8 @@ class DataAnalysisAgent:
             "steps": [],
             "visualizations": [],
             "summary": "",
-            "success": True
+            "success": True,
+            "execution_steps": []  # Track what code executed
         }
         
         try:
@@ -68,280 +72,346 @@ class DataAnalysisAgent:
                 results["error"] = load_result["message"]
                 return results
             
+            df = self.inspection_tool.get_dataframe()
+            basic_info = load_result["basic_info"]
+            
             results["steps"].append({
                 "step": "load_dataset",
-                "result": load_result["basic_info"]
+                "result": basic_info
             })
             
-            # Set dataframe for other tools
-            df = self.inspection_tool.get_dataframe()
+            # Step 2: Set dataframe for other tools
             self.statistics_tool.set_dataframe(df)
             self.visualization_tool.set_dataframe(df)
             
-            # Step 2: Get basic dataset info
-            basic_info = load_result["basic_info"]
-            missing_info = self.inspection_tool.get_missing_values_info()
+            # Step 3: Generate analysis code using Gemini
+            analysis_code = self._generate_analysis_code(basic_info, user_prompt)
+            if not analysis_code:
+                results["success"] = False
+                results["error"] = "Failed to generate analysis code"
+                return results
             
-            results["steps"].append({
-                "step": "inspect_dataset",
-                "basic_info": basic_info,
-                "missing_values": missing_info
-            })
+            results["execution_steps"].append("Code generation completed")
             
-            # Step 3: Use LLM to decide what analysis to perform
-            analysis_plan = self._create_analysis_plan(basic_info, user_prompt)
+            # Step 4: Execute the generated code
+            execution_results = self._execute_analysis_code(
+                analysis_code,
+                df,
+                basic_info,
+                user_prompt
+            )
             
-            # Convert analysis plan to displayable steps format
-            results["analysis_plan"] = self._format_analysis_plan_for_display(analysis_plan)
+            if not execution_results["success"]:
+                results["success"] = False
+                results["error"] = execution_results.get("error", "Code execution failed")
+                results["execution_steps"] = execution_results.get("execution_steps", [])
+                return results
             
-            # Step 4: Execute the analysis plan
-            execution_results = self._execute_analysis_plan(analysis_plan)
-            results["steps"].extend(execution_results["steps"])
-            results["visualizations"].extend(execution_results["visualizations"])
+            # Collect visualizations and analysis results
+            results["visualizations"].extend(execution_results.get("visualizations", []))
+            results["steps"].extend(execution_results.get("analysis_results", []))
+            results["execution_steps"] = execution_results.get("execution_steps", [])
             
-            # Step 5: Generate summary using LLM
-            summary = self._generate_summary(user_prompt, basic_info, execution_results)
+            # Step 5: Generate summary using LLM based on execution results
+            execution_summary = execution_results.get("summary", "")
+            summary = self._generate_summary(
+                user_prompt,
+                basic_info,
+                execution_results,
+                execution_summary
+            )
             results["summary"] = summary
             
         except Exception as e:
             results["success"] = False
-            results["error"] = str(e)
+            results["error"] = f"Analysis failed: {str(e)}"
+            results["error_traceback"] = traceback.format_exc()
         
         return results
     
-    def _create_analysis_plan(self, basic_info: Dict[str, Any], user_prompt: str) -> Dict[str, Any]:
+    def _generate_analysis_code(self, basic_info: Dict[str, Any], user_prompt: str) -> Optional[str]:
         """
-        Use LLM to create an analysis plan based on dataset info and user prompt
+        Use Gemini to generate custom Python analysis code.
         
         Args:
             basic_info: Basic dataset information
-            user_prompt: User's request
+            user_prompt: User's analysis request
             
         Returns:
-            Analysis plan with steps to execute
+            Generated Python code as string, or None if generation fails
         """
-        prompt = f"""You are a data analysis assistant. Based on the dataset information and user request,
-create a detailed analysis plan.
+        # Prepare info about available tools
+        tools_available = """
+# Available Tools:
+# - inspection_tool: DatasetInspectionTool for data loading/inspection
+# - statistics_tool: StatisticalAnalysisTool with methods:
+#   - get_descriptive_statistics()
+#   - get_correlation_matrix(threshold=0.3)
+#   - get_categorical_distribution()
+#   - get_numerical_distribution()
+#   - get_outlier_detection()
+# - visualization_tool: VisualizationTool with methods:
+#   - create_distribution_grid()
+#   - create_correlation_heatmap()
+#   - create_box_plot()
+#   - create_scatter_plot()
+#   - create_categorical_plot()
+# - df: pandas DataFrame with the loaded data
+# - save visualization to outputs/: use visualization_tool methods which return file paths
+"""
+        
+        prompt = f"""You are a Python data analysis expert. Generate executable Python code to analyze a dataset based on the user's request.
+
+{tools_available}
 
 Dataset Information:
-- Number of rows: {basic_info['num_rows']}
-- Number of columns: {basic_info['num_columns']}
-- Column names: {', '.join(basic_info['column_names'])}
+- Rows: {basic_info['num_rows']}
+- Columns: {basic_info['num_columns']}
+- Column names: {basic_info['column_names']}
 - Data types: {json.dumps(basic_info['data_types'], indent=2)}
 
 User Request: {user_prompt}
 
-Create an analysis plan that includes:
-1. What statistical analyses to perform
-2. What visualizations to create
-3. What patterns or insights to look for
+Generate ONLY valid, executable Python code that:
+1. Uses the available tools (inspection_tool, statistics_tool, visualization_tool)
+2. Analyzes the data according to the user's request
+3. Creates relevant visualizations
+4. Stores results in a dictionary called 'analysis_results' with keys: 'summary', 'visualizations', 'analysis_steps'
 
-Return your response as a JSON object with the following structure:
-{{
-    "statistical_analyses": ["list of analyses to perform"],
-    "visualizations": ["list of visualizations to create"],
-    "focus_areas": ["key areas to investigate"]
-}}
+The code will be executed with these variables already defined:
+- df (pandas DataFrame)
+- inspection_tool, statistics_tool, visualization_tool (initialized tool objects)
+- basic_info (dictionary with dataset metadata)
 
-Only return the JSON object, no other text.
+Rules:
+- Return ONLY Python code, no explanations
+- Code must be syntactically correct
+- Use the tool objects for analysis (they're pre-initialized)
+- Store visualization file paths in analysis_results['visualizations']
+- Store analysis steps/findings in analysis_results['analysis_steps'] (list of dicts)
+- Write a 2-3 sentence summary in analysis_results['summary']
+- Don't print to stdout; store everything in analysis_results dict
+- Handle exceptions gracefully
+
+Example structure:
+```python
+analysis_results = {
+    'visualizations': [],
+    'analysis_steps': [],
+    'summary': ''
+}
+
+# Your code here...
+
+# Example:
+stats = statistics_tool.get_descriptive_statistics()
+analysis_results['analysis_steps'].append({{'analysis': 'descriptive_stats', 'result': stats}})
+
+heatmap = visualization_tool.create_correlation_heatmap()
+if heatmap and 'file_path' in heatmap:
+    analysis_results['visualizations'].append(heatmap['file_path'])
+
+analysis_results['summary'] = 'Summary of findings...'
+```
+
+Generate the Python code now:
 """
         
         try:
             response = self.model.generate_content(prompt)
-            # Extract JSON from response
-            response_text = response.text.strip()
+            code = response.text.strip()
             
             # Remove markdown code blocks if present
-            if response_text.startswith("```json"):
-                response_text = response_text[7:]
-            if response_text.startswith("```"):
-                response_text = response_text[3:]
-            if response_text.endswith("```"):
-                response_text = response_text[:-3]
+            if code.startswith("```python"):
+                code = code[9:]
+            elif code.startswith("```"):
+                code = code[3:]
             
-            plan = json.loads(response_text.strip())
-            return plan
+            if code.endswith("```"):
+                code = code[:-3]
+            
+            return code.strip()
         
         except Exception as e:
-            # Fallback plan if LLM fails
-            return {
-                "statistical_analyses": ["descriptive_statistics", "correlation_analysis"],
-                "visualizations": ["distribution_plots", "correlation_heatmap"],
-                "focus_areas": ["data quality", "variable relationships"]
-            }
+            print(f"Error generating analysis code: {e}")
+            return None
     
-    def _format_analysis_plan_for_display(self, plan: Dict[str, Any]) -> list:
+    def _execute_analysis_code(self, code: str, df, basic_info: Dict[str, Any], 
+                              user_prompt: str) -> Dict[str, Any]:
         """
-        Convert analysis plan to displayable step format for frontend
+        Execute the generated analysis code safely.
         
         Args:
-            plan: Analysis plan from LLM
+            code: Python code to execute
+            df: Pandas DataFrame with data
+            basic_info: Dataset metadata
+            user_prompt: Original user prompt
             
         Returns:
-            List of step objects with tool and purpose
+            Dictionary with execution results
         """
-        steps = []
-        
-        # Add statistical analysis steps
-        for analysis in plan.get("statistical_analyses", []):
-            steps.append({
-                "tool": "Statistical Analysis",
-                "purpose": analysis.replace("_", " ").title()
-            })
-        
-        # Add visualization steps
-        for viz in plan.get("visualizations", []):
-            steps.append({
-                "tool": "Visualization",
-                "purpose": viz.replace("_", " ").title()
-            })
-        
-        # Add focus area steps
-        for focus in plan.get("focus_areas", []):
-            steps.append({
-                "tool": "Analysis Focus",
-                "purpose": f"Investigate {focus}"
-            })
-        
-        return steps
-    
-    def _execute_analysis_plan(self, plan: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute the analysis plan
-        
-        Args:
-            plan: Analysis plan from LLM
-            
-        Returns:
-            Execution results
-        """
-        results = {
-            "steps": [],
-            "visualizations": []
+        execution_results = {
+            "success": True,
+            "visualizations": [],
+            "analysis_results": [],
+            "summary": "",
+            "execution_steps": [],
+            "error": None
         }
         
-        # Execute statistical analyses
-        for analysis in plan.get("statistical_analyses", []):
-            if "descriptive" in analysis.lower() or "statistics" in analysis.lower():
-                stats = self.statistics_tool.get_descriptive_statistics()
-                results["steps"].append({
-                    "step": "descriptive_statistics",
-                    "result": stats
-                })
+        try:
+            execution_results["execution_steps"].append("Starting code execution...")
             
-            if "correlation" in analysis.lower():
-                corr = self.statistics_tool.get_correlation_matrix(threshold=0.3)
-                results["steps"].append({
-                    "step": "correlation_analysis",
-                    "result": corr
-                })
+            # Create execution environment with available tools
+            execution_env = {
+                'df': df,
+                'inspection_tool': self.inspection_tool,
+                'statistics_tool': self.statistics_tool,
+                'visualization_tool': self.visualization_tool,
+                'basic_info': basic_info,
+                'json': json,
+                '__builtins__': {
+                    'print': lambda *args, **kwargs: None,  # Suppress prints
+                    'len': len,
+                    'range': range,
+                    'str': str,
+                    'int': int,
+                    'float': float,
+                    'list': list,
+                    'dict': dict,
+                    'tuple': tuple,
+                    'set': set,
+                    'Exception': Exception,
+                },
+            }
             
-            if "categorical" in analysis.lower() or "distribution" in analysis.lower():
-                cat_dist = self.statistics_tool.get_categorical_distribution()
-                if "error" not in cat_dist:
-                    results["steps"].append({
-                        "step": "categorical_distribution",
-                        "result": cat_dist
-                    })
+            # Execute the generated code
+            exec(code, execution_env)
+            
+            execution_results["execution_steps"].append("Code executed successfully")
+            
+            # Extract results from execution environment
+            if 'analysis_results' in execution_env:
+                analysis_results = execution_env['analysis_results']
+                
+                # Extract visualizations
+                if isinstance(analysis_results.get('visualizations'), list):
+                    execution_results["visualizations"] = analysis_results['visualizations']
+                    execution_results["execution_steps"].append(
+                        f"Generated {len(analysis_results['visualizations'])} visualization(s)"
+                    )
+                
+                # Extract analysis steps
+                if isinstance(analysis_results.get('analysis_steps'), list):
+                    for step in analysis_results['analysis_steps']:
+                        execution_results["analysis_results"].append(step)
+                    execution_results["execution_steps"].append(
+                        f"Completed {len(analysis_results['analysis_steps'])} analysis step(s)"
+                    )
+                
+                # Extract summary
+                if isinstance(analysis_results.get('summary'), str):
+                    execution_results["summary"] = analysis_results['summary']
+                    execution_results["execution_steps"].append("Generated analysis summary")
+            else:
+                execution_results["execution_steps"].append(
+                    "Warning: analysis_results not found in execution environment"
+                )
+            
+            execution_results["execution_steps"].append("Execution completed")
+            
+        except Exception as e:
+            execution_results["success"] = False
+            execution_results["error"] = f"Code execution failed: {str(e)}"
+            execution_results["execution_steps"].append(f"Error: {str(e)}")
+            
+            import traceback
+            execution_results["execution_steps"].append(
+                f"Traceback: {traceback.format_exc()[:200]}..."
+            )
         
-        # Execute visualizations
-        for viz in plan.get("visualizations", []):
-            if "distribution" in viz.lower() or "histogram" in viz.lower():
-                dist_result = self.visualization_tool.create_distribution_grid()
-                if "error" not in dist_result:
-                    results["visualizations"].append(dist_result)
-            
-            if "correlation" in viz.lower() or "heatmap" in viz.lower():
-                heatmap_result = self.visualization_tool.create_correlation_heatmap()
-                if "error" not in heatmap_result:
-                    results["visualizations"].append(heatmap_result)
-            
-            if "box" in viz.lower() or "outlier" in viz.lower():
-                box_result = self.visualization_tool.create_box_plot()
-                if "error" not in box_result:
-                    results["visualizations"].append(box_result)
-        
-        return results
+        return execution_results
     
-    def _generate_summary(self, user_prompt: str, basic_info: Dict[str, Any], 
-                         execution_results: Dict[str, Any]) -> str:
+    def _generate_summary(self, user_prompt: str, basic_info: Dict[str, Any],
+                         execution_results: Dict[str, Any],
+                         execution_summary: str = "") -> str:
         """
-        Generate a natural language summary of the analysis
+        Generate a comprehensive summary using LLM.
         
         Args:
             user_prompt: Original user prompt
-            basic_info: Basic dataset information
-            execution_results: Results from analysis execution
+            basic_info: Dataset information
+            execution_results: Results from code execution
+            execution_summary: Summary generated by the code
             
         Returns:
-            Natural language summary
+            Formatted summary text
         """
-        # Format data types for better readability
+        # If execution provided a summary, enhance it with LLM
+        if execution_summary:
+            prompt = f"""You are a data scientist. The following analysis code was run on a dataset:
+
+User Question: {user_prompt}
+
+Dataset: {basic_info['num_rows']} rows, {basic_info['num_columns']} columns
+
+Generated Summary from Analysis:
+{execution_summary}
+
+Generated Analysis Steps:
+{json.dumps(execution_results.get('analysis_results', []), indent=2, default=str)}
+
+Please refine and enhance this summary. Make it more engaging, insightful, and actionable. 
+Include:
+1. What the data represents
+2. Key findings from the analysis
+3. Answer to the user's specific question
+4. Recommended next steps
+
+Write in clear, professional language suitable for business stakeholders.
+"""
+            
+            try:
+                response = self.model.generate_content(prompt)
+                return response.text
+            except Exception as e:
+                # Return the original summary if enhancement fails
+                return execution_summary if execution_summary else "Analysis completed successfully."
+        
+        # Fallback: generate summary from metadata only
         data_types_summary = {}
         for col, dtype in basic_info['data_types'].items():
             if dtype not in data_types_summary:
                 data_types_summary[dtype] = []
             data_types_summary[dtype].append(col)
         
-        prompt = f"""You are a data scientist providing insights from an exploratory data analysis.
-
-Original Question: {user_prompt}
-
-Dataset Overview:
-- Total Rows: {basic_info['num_rows']}
-- Total Columns: {basic_info['num_columns']}
-- Column Names: {', '.join(basic_info['column_names'])}
-- Data Types: {json.dumps(data_types_summary, indent=2)}
-
-Analysis Results:
-{json.dumps(execution_results, indent=2, default=str)}
-
-Provide a comprehensive summary that includes:
-
-1. **Dataset Description**: Describe what type of data this appears to be (e.g., e-commerce sales, customer data, financial records) based on column names and data types.
-
-2. **Data Characteristics**: Summarize the data types present (numeric columns, categorical columns, date fields) and what they represent.
-
-3. **Key Findings**: Highlight the most important patterns, trends, or insights discovered in the analysis. Reference specific statistics and values.
-
-4. **Suggested Actions**: Recommend 2-3 specific next steps for deeper analysis or actions to take based on the findings.
-
-5. **Potential Use Cases**: Explain what this data could be used for (predictions, business decisions, optimization, etc.).
-
-Write in a professional but accessible tone. Structure the response in clear paragraphs. Be specific and reference actual numbers from the analysis.
-"""
+        # Count visualizations
+        viz_count = len(execution_results.get('visualizations', []))
+        analysis_count = len(execution_results.get('analysis_results', []))
         
-        try:
-            response = self.model.generate_content(prompt)
-            return response.text
-        except Exception as e:
-            # Enhanced fallback summary with dataset information
-            numeric_cols = [col for col, dtype in basic_info['data_types'].items() if dtype in ['int64', 'float64']]
-            categorical_cols = [col for col, dtype in basic_info['data_types'].items() if dtype == 'object']
-            
-            fallback_summary = f"""**Dataset Overview**
-This dataset contains {basic_info['num_rows']} rows and {basic_info['num_columns']} columns. 
+        fallback = f"""**Analysis Summary**
 
-**Data Types**
-- Numeric columns ({len(numeric_cols)}): {', '.join(numeric_cols[:5])}{'...' if len(numeric_cols) > 5 else ''}
-- Categorical columns ({len(categorical_cols)}): {', '.join(categorical_cols[:5])}{'...' if len(categorical_cols) > 5 else ''}
+**Dataset Overview**
+- Total Records: {basic_info['num_rows']:,}
+- Total Features: {basic_info['num_columns']}
+- Numeric Columns: {len([c for c, t in basic_info['data_types'].items() if t in ['int64', 'float64']])}
+- Categorical Columns: {len([c for c, t in basic_info['data_types'].items() if t == 'object'])}
 
-**Analysis Completed**
-Generated {len(execution_results['visualizations'])} visualizations and {len(execution_results['steps'])} statistical analyses.
+**Analysis Performed**
+- Statistical Analyses: {analysis_count}
+- Visualizations Generated: {viz_count}
 
-**Suggested Actions**
-1. Review the visualizations to identify patterns and trends
-2. Examine correlation patterns between numeric variables
-3. Investigate any outliers or unusual distributions
+**Your Question**
+{user_prompt}
 
-**Potential Use Cases**
-This data can be used for predictive modeling, trend analysis, and data-driven decision making based on the available features."""
-            
-            return fallback_summary
+The analysis has been completed and visualizations have been generated to help answer your question. 
+Review the charts and statistics above for detailed insights into your data.
+"""
+        return fallback
     
     def quick_analyze(self, file_path: str) -> Dict[str, Any]:
         """
-        Perform a quick automated analysis without user prompt
+        Perform a quick automated analysis without user prompt.
         
         Args:
             file_path: Path to CSV file
@@ -349,5 +419,11 @@ This data can be used for predictive modeling, trend analysis, and data-driven d
         Returns:
             Analysis results
         """
-        default_prompt = "Provide a comprehensive exploratory data analysis of this dataset, including distributions, correlations, and key insights."
+        default_prompt = """Perform an exploratory data analysis of this dataset. 
+Generate visualizations for:
+1. Distribution of numeric variables (histograms/box plots)
+2. Relationships between variables (correlation heatmap)
+3. Any interesting patterns or outliers
+
+Provide a concise summary of key findings."""
         return self.analyze(file_path, default_prompt)
