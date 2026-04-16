@@ -35,9 +35,12 @@ class DataAnalysisAgent:
         # Configure API
         self.api_key = api_key or Config.GEMINI_API_KEY
         genai.configure(api_key=self.api_key)
-        
-        # Initialize model
-        self.model = genai.GenerativeModel(Config.GEMINI_MODEL)
+
+        # Track generation failures for better user-facing diagnostics.
+        self.last_generation_error: Optional[str] = None
+
+        # Initialize model with fallbacks in case configured model is unavailable.
+        self.model = self._initialize_model()
         
         # Initialize tools
         self.inspection_tool = DatasetInspectionTool()
@@ -46,6 +49,31 @@ class DataAnalysisAgent:
         
         # Conversation history
         self.conversation_history = []
+
+    def _initialize_model(self):
+        """Initialize Gemini model with robust fallback options."""
+        candidate_models = [
+            Config.GEMINI_MODEL,
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+        ]
+
+        last_error = None
+        for model_name in candidate_models:
+            if not model_name:
+                continue
+            try:
+                model = genai.GenerativeModel(model_name)
+                # Quick sanity ping to ensure model is actually usable.
+                model.generate_content("Respond with exactly: ok")
+                return model
+            except Exception as e:
+                last_error = str(e)
+                continue
+
+        raise RuntimeError(
+            f"Failed to initialize any Gemini model. Last error: {last_error}"
+        )
     
     def analyze(self, file_path: str, user_prompt: str) -> Dict[str, Any]:
         """
@@ -78,6 +106,11 @@ class DataAnalysisAgent:
             
             df = self.inspection_tool.get_dataframe()
             basic_info = load_result["basic_info"]
+
+            if df is None:
+                results["success"] = False
+                results["error"] = "Dataset loaded but dataframe is empty or unavailable"
+                return results
             
             results["steps"].append({
                 "step": "load_dataset",
@@ -92,7 +125,8 @@ class DataAnalysisAgent:
             analysis_code = self._generate_analysis_code(basic_info, user_prompt)
             if not analysis_code:
                 results["success"] = False
-                results["error"] = "Failed to generate analysis code"
+                details = f": {self.last_generation_error}" if self.last_generation_error else ""
+                results["error"] = f"Failed to generate analysis code{details}"
                 return results
             
             results["execution_steps"].append("Code generation completed")
@@ -218,22 +252,68 @@ analysis_results['summary'] = 'Summary of findings...'
 Generate the Python code now:
 """
         
-        try:
-            response = self.model.generate_content(prompt)
-            code = response.text.strip()
-            
-            # Remove markdown code blocks if present
+        def _extract_response_text(response_obj: Any) -> str:
+            """Safely extract text from Gemini response across SDK response shapes."""
+            try:
+                text = getattr(response_obj, "text", "")
+                if isinstance(text, str) and text.strip():
+                    return text.strip()
+            except Exception:
+                pass
+
+            candidates = getattr(response_obj, "candidates", None)
+            if candidates:
+                chunks = []
+                for candidate in candidates:
+                    content = getattr(candidate, "content", None)
+                    if not content:
+                        continue
+                    parts = getattr(content, "parts", [])
+                    for part in parts:
+                        part_text = getattr(part, "text", None)
+                        if isinstance(part_text, str) and part_text.strip():
+                            chunks.append(part_text)
+                if chunks:
+                    return "\n".join(chunks).strip()
+
+            return ""
+
+        def _normalize_code(raw_text: str) -> str:
+            code = raw_text.strip()
             if code.startswith("```python"):
                 code = code[9:]
             elif code.startswith("```"):
                 code = code[3:]
-            
             if code.endswith("```"):
                 code = code[:-3]
-            
             return code.strip()
-        
+
+        self.last_generation_error = None
+
+        try:
+            response = self.model.generate_content(prompt)
+            code_text = _extract_response_text(response)
+            code = _normalize_code(code_text)
+            if code:
+                return code
+
+            # Retry once with a compact prompt if primary prompt produced no text.
+            compact_prompt = (
+                "Return ONLY executable Python code that creates analysis_results dict with keys "
+                "summary, visualizations, analysis_steps. Use df and generate requested visualizations. "
+                f"User request: {user_prompt}. Columns: {basic_info['column_names']}"
+            )
+            retry_response = self.model.generate_content(compact_prompt)
+            retry_text = _extract_response_text(retry_response)
+            retry_code = _normalize_code(retry_text)
+            if retry_code:
+                return retry_code
+
+            self.last_generation_error = "Model returned empty content"
+            return None
+
         except Exception as e:
+            self.last_generation_error = str(e)
             print(f"Error generating analysis code: {e}")
             return None
     
