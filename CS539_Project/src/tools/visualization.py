@@ -63,9 +63,14 @@ class VisualizationTool:
                     "__builtins__": {
                         "len": len,
                         "range": range,
+                        "enumerate": enumerate,
+                        "zip": zip,
+                        "any": any,
+                        "all": all,
                         "str": str,
                         "int": int,
                         "float": float,
+                        "bool": bool,
                         "list": list,
                         "dict": dict,
                         "set": set,
@@ -75,6 +80,7 @@ class VisualizationTool:
                         "sum": sum,
                         "abs": abs,
                         "sorted": sorted,
+                        "print": print,
                         "Exception": Exception,
                         "ValueError": ValueError,
                     }

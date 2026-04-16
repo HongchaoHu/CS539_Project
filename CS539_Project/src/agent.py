@@ -1,13 +1,13 @@
 """Data Analysis Agent
 
-Minimal agent that:
+Agent that:
 1) loads a CSV file,
 2) asks Gemini for plotting/analysis code,
 3) executes that code and returns summary + saved charts.
 """
 
 import json
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Iterable, cast
 
 import google.generativeai as genai
 import pandas as pd
@@ -31,7 +31,10 @@ class DataAnalysisAgent:
         """
         # Configure API
         self.api_key = api_key or Config.GEMINI_API_KEY
-        genai.configure(api_key=self.api_key)
+        configure_fn = getattr(genai, "configure", None)
+        if not callable(configure_fn):
+            raise RuntimeError("google.generativeai.configure is unavailable in current environment")
+        configure_fn(api_key=self.api_key)
 
         # Track generation failures for better user-facing diagnostics.
         self.last_generation_error: Optional[str] = None
@@ -42,19 +45,22 @@ class DataAnalysisAgent:
         self.visualization_tool = VisualizationTool()
 
     def _initialize_model(self):
-        """Initialize Gemini model with robust fallback options."""
-        candidate_models = [
-            Config.GEMINI_MODEL,
-            "gemini-1.5-flash",
-            "gemini-1.5-pro",
-        ]
+        """Initialize Gemini model from configured and key-accessible candidates."""
+        candidate_models = self._build_candidate_models()
 
+        attempted: List[str] = []
         last_error = None
         for model_name in candidate_models:
             if not model_name:
                 continue
+            if model_name in attempted:
+                continue
+            attempted.append(model_name)
             try:
-                model = genai.GenerativeModel(model_name)
+                model_cls = getattr(genai, "GenerativeModel", None)
+                if model_cls is None:
+                    raise RuntimeError("google.generativeai.GenerativeModel is unavailable")
+                model = model_cls(model_name)
                 # Quick sanity ping to ensure model is actually usable.
                 model.generate_content("Respond with exactly: ok")
                 return model
@@ -63,8 +69,66 @@ class DataAnalysisAgent:
                 continue
 
         raise RuntimeError(
-            f"Failed to initialize any Gemini model. Last error: {last_error}"
+            "Failed to initialize any Gemini model for this API key. "
+            f"Attempted: {attempted}. Last error: {last_error}"
         )
+
+    def _build_candidate_models(self) -> List[str]:
+        """Build a candidate list from config first, then discover models available to this key."""
+        candidates: List[str] = []
+
+        # User/project preferred model from env remains the first choice.
+        if Config.GEMINI_MODEL:
+            candidates.append(Config.GEMINI_MODEL)
+
+        discovered = self._discover_available_models()
+        candidates.extend(discovered)
+
+        # Last-resort candidates if model listing is unavailable.
+        candidates.extend([
+            "gemini-2.0-flash",
+            "gemini-2.0-flash-lite",
+        ])
+
+        # Keep order while removing duplicates.
+        deduped: List[str] = []
+        seen = set()
+        for name in candidates:
+            normalized = name.strip()
+            if normalized.startswith("models/"):
+                normalized = normalized.split("models/", 1)[1]
+            if not normalized or normalized in seen:
+                continue
+            seen.add(normalized)
+            deduped.append(normalized)
+
+        return deduped
+
+    def _discover_available_models(self) -> List[str]:
+        """Discover models that support generateContent for the current API key."""
+        try:
+            available = []
+            list_models_fn = getattr(genai, "list_models", None)
+            if not callable(list_models_fn):
+                return []
+
+            models_result = list_models_fn()
+            if not hasattr(models_result, "__iter__"):
+                return []
+
+            models_iterable = cast(Iterable[Any], models_result)
+            for model in models_iterable:
+                supported_methods = getattr(model, "supported_generation_methods", []) or []
+                model_name = getattr(model, "name", "")
+                if "generateContent" in supported_methods and isinstance(model_name, str):
+                    available.append(model_name)
+
+            # Prefer fast, lower-cost flash variants when available.
+            flash = [m for m in available if "flash" in m.lower()]
+            non_flash = [m for m in available if "flash" not in m.lower()]
+            return flash + non_flash
+        except Exception:
+            return []
     
     def analyze(self, file_path: str, user_prompt: str) -> Dict[str, Any]:
         """

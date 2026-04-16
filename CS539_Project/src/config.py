@@ -10,7 +10,8 @@ class Config:
     """Configuration class for the agent"""
     
     # API Configuration
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    # Accept either env var name so notebook/server launches remain flexible.
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
     TEMPERATURE = float(os.getenv("TEMPERATURE", "0.7"))
     MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2048"))
@@ -34,8 +35,8 @@ class Config:
         """Validate that required configuration is present"""
         if not cls.GEMINI_API_KEY:
             raise ValueError(
-                "GEMINI_API_KEY not found. Please set it in your .env file. "
-                "Copy .env.example to .env and add your API key."
+                "Gemini API key not found. Set GEMINI_API_KEY or GOOGLE_API_KEY "
+                "in your .env or environment before starting the server."
             )
         return True
 

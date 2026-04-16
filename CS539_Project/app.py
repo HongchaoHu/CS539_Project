@@ -80,6 +80,7 @@ class HealthResponse(BaseModel):
     status: str
     version: str
     agent_initialized: bool
+    detail: Optional[str] = None
 
 
 class ErrorResponse(BaseModel):
@@ -119,13 +120,16 @@ def create_app() -> FastAPI:
         app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     
     # Initialize agent (singleton pattern)
+    app.state.agent_init_error = None
     try:
         app.state.agent = DataAnalysisAgent()
         app.state.agent_initialized = True
     except Exception as e:
-        print(f"Warning: Could not initialize agent: {e}")
+        error_message = str(e)
+        print(f"Warning: Could not initialize agent: {error_message}")
         app.state.agent = None
         app.state.agent_initialized = False
+        app.state.agent_init_error = error_message
     
     return app
 
@@ -136,6 +140,22 @@ app = create_app()
 
 
 # ==================== Helper Functions ====================
+
+def _ensure_agent_initialized() -> bool:
+    """Lazily initialize the agent if startup initialization failed."""
+    if app.state.agent_initialized and app.state.agent is not None:
+        return True
+
+    try:
+        app.state.agent = DataAnalysisAgent()
+        app.state.agent_initialized = True
+        app.state.agent_init_error = None
+        return True
+    except Exception as e:
+        app.state.agent = None
+        app.state.agent_initialized = False
+        app.state.agent_init_error = str(e)
+        return False
 
 def save_analysis_artifact(analysis_id: str, results: Dict[str, Any]) -> str:
     """Save analysis results as JSON artifact"""
@@ -189,7 +209,8 @@ async def health_check():
     return HealthResponse(
         status="healthy" if app.state.agent_initialized else "degraded",
         version="1.0.0",
-        agent_initialized=app.state.agent_initialized
+        agent_initialized=app.state.agent_initialized,
+        detail=app.state.agent_init_error
     )
 
 
@@ -208,10 +229,13 @@ async def analyze_dataset(request: AnalysisRequest, background_tasks: Background
     Raises:
         HTTPException: If agent not initialized or analysis fails
     """
-    if not app.state.agent_initialized:
+    if not _ensure_agent_initialized():
         raise HTTPException(
             status_code=503,
-            detail="Agent not initialized. Please check API key configuration."
+            detail=(
+                "Agent not initialized. "
+                f"{app.state.agent_init_error or 'Please check API key configuration.'}"
+            )
         )
     
     # Validate file exists
@@ -302,10 +326,13 @@ async def upload_and_analyze(
     Raises:
         HTTPException: If file type invalid or analysis fails
     """
-    if not app.state.agent_initialized:
+    if not _ensure_agent_initialized():
         raise HTTPException(
             status_code=503,
-            detail="Agent not initialized. Please check API key configuration."
+            detail=(
+                "Agent not initialized. "
+                f"{app.state.agent_init_error or 'Please check API key configuration.'}"
+            )
         )
     
     # Validate file type

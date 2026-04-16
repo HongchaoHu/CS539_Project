@@ -52,7 +52,10 @@ async function checkHealth() {
             elements.statusDot.classList.add('healthy');
             elements.statusText.textContent = 'API Ready';
         } else {
-            elements.statusText.textContent = 'API Unavailable';
+            const detail = typeof data.detail === 'string' && data.detail.trim()
+                ? `: ${data.detail}`
+                : '';
+            elements.statusText.textContent = `API Unavailable${detail}`;
         }
     } catch (error) {
         elements.statusText.textContent = 'Connection Error';
