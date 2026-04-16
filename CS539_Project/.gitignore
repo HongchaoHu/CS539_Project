@@ -1,0 +1,18 @@
+# Python cache
+__pycache__/
+**/__pycache__/
+
+# Jupyter runtime
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# Local notebook-generated runtime app
+/data_analysis_agent/
+
+# Runtime data artifacts
+/uploads/
+/artifacts/
+/outputs/
+
+# Secrets
+.env
