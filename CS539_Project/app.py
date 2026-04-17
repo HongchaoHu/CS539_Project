@@ -73,6 +73,7 @@ class AnalysisResponse(BaseModel):
     evaluation: Optional[Dict[str, Any]] = None
     latency: float
     artifact_path: Optional[str] = None
+    generated_code: Optional[str] = None
 
 
 class HealthResponse(BaseModel):
@@ -292,7 +293,8 @@ async def analyze_dataset(request: AnalysisRequest, background_tasks: Background
             visualizations=viz_files,
             evaluation=None,
             latency=round(latency_ms / 1000, 2),
-            artifact_path=artifact_path
+            artifact_path=artifact_path,
+            generated_code=results.get("generated_code")
         )
         
     except HTTPException:

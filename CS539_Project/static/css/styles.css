@@ -356,6 +356,8 @@ body {
     border-radius: var(--border-radius);
     padding: 25px;
     box-shadow: var(--shadow-sm);
+    min-width: 0;       /* prevent grid blowout */
+    overflow: hidden;   /* clip any oversized child */
 }
 
 .card-header {
@@ -432,8 +434,8 @@ body {
 
 .visualizations-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: 1fr;
+    gap: 24px;
 }
 
 .viz-item {
@@ -441,6 +443,8 @@ body {
     border-radius: 8px;
     overflow: hidden;
     transition: transform 0.2s;
+    min-width: 0;
+    width: 100%;
 }
 
 .viz-item:hover {
@@ -449,8 +453,10 @@ body {
 
 .viz-item img {
     width: 100%;
+    max-width: 100%;
     height: auto;
     display: block;
+    object-fit: contain;
 }
 
 .viz-item .viz-label {
@@ -529,6 +535,46 @@ body {
 .error-card p {
     color: var(--text-secondary);
     margin-bottom: 25px;
+}
+
+/* ==================== Generated Code Block ==================== */
+.code-block {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    white-space: pre;
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #333;
+}
+
+.code-block code {
+    background: none;
+    color: inherit;
+    font-size: inherit;
+    padding: 0;
+}
+
+.btn-copy-code {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-copy-code:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
 }
 
 /* ==================== Footer ==================== */

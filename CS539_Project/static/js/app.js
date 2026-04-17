@@ -31,6 +31,9 @@ const elements = {
     visualizationsContainer: document.getElementById('visualizationsContainer'),
     evaluationCard: document.getElementById('evaluationCard'),
     evaluationContent: document.getElementById('evaluationContent'),
+    generatedCodeCard: document.getElementById('generatedCodeCard'),
+    generatedCodeContent: document.getElementById('generatedCodeContent'),
+    copyCodeBtn: document.getElementById('copyCodeBtn'),
     downloadArtifactBtn: document.getElementById('downloadArtifactBtn'),
     downloadVisualizationsBtn: document.getElementById('downloadVisualizationsBtn')
 };
@@ -117,6 +120,20 @@ function setupEventListeners() {
     // Download buttons
     elements.downloadArtifactBtn.addEventListener('click', downloadArtifact);
     elements.downloadVisualizationsBtn.addEventListener('click', downloadAllVisualizations);
+
+    // Copy code button
+    if (elements.copyCodeBtn) {
+        elements.copyCodeBtn.addEventListener('click', () => {
+            const code = elements.generatedCodeContent ? elements.generatedCodeContent.textContent : '';
+            navigator.clipboard.writeText(code).then(() => {
+                elements.copyCodeBtn.textContent = '✅ Copied!';
+                setTimeout(() => { elements.copyCodeBtn.textContent = '📋 Copy'; }, 2000);
+            }).catch(() => {
+                elements.copyCodeBtn.textContent = '❌ Failed';
+                setTimeout(() => { elements.copyCodeBtn.textContent = '📋 Copy'; }, 2000);
+            });
+        });
+    }
 }
 
 // ==================== File Handling ====================
@@ -266,6 +283,12 @@ function displayResults(data) {
     // Display evaluation details if available
     if (data.evaluation) {
         displayEvaluation(data.evaluation);
+    }
+
+    // Display generated code
+    if (elements.generatedCodeCard && elements.generatedCodeContent) {
+        elements.generatedCodeCard.style.display = 'block';
+        elements.generatedCodeContent.textContent = data.generated_code || '# Code not available';
     }
 
     // Reset analyze button

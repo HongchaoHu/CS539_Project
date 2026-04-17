@@ -171,6 +171,7 @@ class DataAnalysisAgent:
                 results["error"] = f"Failed to generate analysis code{details}"
                 return results
 
+            results["generated_code"] = analysis_code
             results["execution_steps"].append("Code generation completed")
             execution_results = self.visualization_tool.execute_generated_code(analysis_code)
 
@@ -216,13 +217,13 @@ Generate ONLY executable Python code.
 
 Execution Context (already available):
 - df (pandas DataFrame)
-- pd, plt, sns
+- pd, plt, sns, np
 
 Rules:
 1) Return only code, no explanation text.
 2) Do not read files.
 3) Libraries are preloaded in runtime. Do NOT include any import statements.
-4) Use only these preloaded objects: df, pd, plt, sns.
+4) Use only these preloaded objects: df, pd, plt, sns, np.
 5) Create at least one visualization that matches the user request.
 6) Define analysis_results as:
    analysis_results = {{

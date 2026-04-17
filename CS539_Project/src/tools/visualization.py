@@ -10,6 +10,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -24,7 +25,7 @@ class VisualizationTool:
 
         sns.set_style("whitegrid")
         plt.rcParams["figure.figsize"] = (10, 6)
-        plt.rcParams["figure.dpi"] = 100
+        plt.rcParams["figure.dpi"] = 120
 
         os.makedirs(output_dir, exist_ok=True)
 
@@ -62,40 +63,10 @@ class VisualizationTool:
         # module level (df, pd, plt, …) are also visible inside any nested
         # function that generated code may define.
         execution_env: Dict[str, Any] = {
-            "__builtins__": {
-                "len": len,
-                "range": range,
-                "enumerate": enumerate,
-                "zip": zip,
-                "map": map,
-                "filter": filter,
-                "any": any,
-                "all": all,
-                "str": str,
-                "int": int,
-                "float": float,
-                "bool": bool,
-                "list": list,
-                "dict": dict,
-                "set": set,
-                "tuple": tuple,
-                "min": min,
-                "max": max,
-                "sum": sum,
-                "abs": abs,
-                "round": round,
-                "sorted": sorted,
-                "reversed": reversed,
-                "isinstance": isinstance,
-                "print": print,
-                "Exception": Exception,
-                "ValueError": ValueError,
-                "TypeError": TypeError,
-                "KeyError": KeyError,
-                "IndexError": IndexError,
-            },
+            "__builtins__": __builtins__,  # full built-ins so __import__ and all stdlib works
             "df": self.df,
             "pd": pd,
+            "np": np,
             "plt": plt,
             "sns": sns,
             "analysis_results": {
@@ -140,7 +111,9 @@ class VisualizationTool:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{base_name}_{timestamp}.png"
         filepath = os.path.join(self.output_dir, filename)
-        fig.savefig(filepath, dpi=100, bbox_inches="tight")
+        # Enforce a consistent output size regardless of what generated code set
+        fig.set_size_inches(10, 6)
+        fig.savefig(filepath, dpi=120, bbox_inches="tight")
         self.created_plots.append(filepath)
         return filepath
 
