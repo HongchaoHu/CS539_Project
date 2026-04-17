@@ -58,7 +58,42 @@ class VisualizationTool:
             execution_steps.append("Removed import statements from generated code")
         existing_figures = set(plt.get_fignums())
 
+        # globals and locals must be the SAME dict so that names bound at
+        # module level (df, pd, plt, …) are also visible inside any nested
+        # function that generated code may define.
         execution_env: Dict[str, Any] = {
+            "__builtins__": {
+                "len": len,
+                "range": range,
+                "enumerate": enumerate,
+                "zip": zip,
+                "map": map,
+                "filter": filter,
+                "any": any,
+                "all": all,
+                "str": str,
+                "int": int,
+                "float": float,
+                "bool": bool,
+                "list": list,
+                "dict": dict,
+                "set": set,
+                "tuple": tuple,
+                "min": min,
+                "max": max,
+                "sum": sum,
+                "abs": abs,
+                "round": round,
+                "sorted": sorted,
+                "reversed": reversed,
+                "isinstance": isinstance,
+                "print": print,
+                "Exception": Exception,
+                "ValueError": ValueError,
+                "TypeError": TypeError,
+                "KeyError": KeyError,
+                "IndexError": IndexError,
+            },
             "df": self.df,
             "pd": pd,
             "plt": plt,
@@ -70,36 +105,9 @@ class VisualizationTool:
         }
 
         try:
-            exec(
-                sanitized_code,
-                {
-                    "__builtins__": {
-                        "len": len,
-                        "range": range,
-                        "enumerate": enumerate,
-                        "zip": zip,
-                        "any": any,
-                        "all": all,
-                        "str": str,
-                        "int": int,
-                        "float": float,
-                        "bool": bool,
-                        "list": list,
-                        "dict": dict,
-                        "set": set,
-                        "tuple": tuple,
-                        "min": min,
-                        "max": max,
-                        "sum": sum,
-                        "abs": abs,
-                        "sorted": sorted,
-                        "print": print,
-                        "Exception": Exception,
-                        "ValueError": ValueError,
-                    }
-                },
-                execution_env,
-            )
+            # Pass execution_env as globals only (no separate locals).
+            # This ensures nested functions can close over df, pd, plt, sns.
+            exec(sanitized_code, execution_env)
             execution_steps.append("Generated code executed successfully")
         except Exception as e:
             execution_steps.append(f"Execution error: {str(e)}")
