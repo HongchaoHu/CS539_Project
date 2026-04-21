@@ -14,6 +14,29 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+try:
+    import sklearn
+    from sklearn import datasets, metrics, model_selection, preprocessing
+    from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans
+    from sklearn.decomposition import PCA
+    from sklearn.linear_model import LinearRegression, LogisticRegression
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.neighbors import KNeighborsClassifier
+except Exception:
+    sklearn = None
+    datasets = None
+    metrics = None
+    model_selection = None
+    preprocessing = None
+    AgglomerativeClustering = None
+    DBSCAN = None
+    KMeans = None
+    PCA = None
+    LinearRegression = None
+    LogisticRegression = None
+    GaussianNB = None
+    KNeighborsClassifier = None
+
 
 class VisualizationTool:
     """Execute generated visualization code and capture output figures."""
@@ -69,6 +92,19 @@ class VisualizationTool:
             "np": np,
             "plt": plt,
             "sns": sns,
+            "sklearn": sklearn,
+            "datasets": datasets,
+            "model_selection": model_selection,
+            "preprocessing": preprocessing,
+            "metrics": metrics,
+            "LinearRegression": LinearRegression,
+            "LogisticRegression": LogisticRegression,
+            "KNeighborsClassifier": KNeighborsClassifier,
+            "GaussianNB": GaussianNB,
+            "KMeans": KMeans,
+            "DBSCAN": DBSCAN,
+            "AgglomerativeClustering": AgglomerativeClustering,
+            "PCA": PCA,
             "analysis_results": {
                 "analysis_steps": [],
                 "summary": "",
@@ -111,8 +147,9 @@ class VisualizationTool:
         """Run self-contained ML code that includes its own import statements.
 
         Unlike execute_generated_code, this method does NOT require a dataframe
-        and does NOT strip import statements — ML code is expected to be
-        fully self-contained (imports + synthetic/built-in dataset + model + viz).
+        and does NOT strip import statements. It intentionally executes the
+        Gemini-generated code as-is, so model/library imports should come from
+        that generated code.
 
         Args:
             code: Complete, runnable Python code produced by the ML prompt.
@@ -125,6 +162,23 @@ class VisualizationTool:
 
         execution_env: Dict[str, Any] = {
             "__builtins__": __builtins__,
+            "pd": pd,
+            "np": np,
+            "plt": plt,
+            "sns": sns,
+            "sklearn": sklearn,
+            "datasets": datasets,
+            "model_selection": model_selection,
+            "preprocessing": preprocessing,
+            "metrics": metrics,
+            "LinearRegression": LinearRegression,
+            "LogisticRegression": LogisticRegression,
+            "KNeighborsClassifier": KNeighborsClassifier,
+            "GaussianNB": GaussianNB,
+            "KMeans": KMeans,
+            "DBSCAN": DBSCAN,
+            "AgglomerativeClustering": AgglomerativeClustering,
+            "PCA": PCA,
             "analysis_results": {
                 "analysis_steps": [],
                 "summary": "",

@@ -10,7 +10,7 @@ import json
 from typing import Dict, Any, Optional, List, Iterable, cast
 
 # ── ML topic taxonomy ───────────────────────────────────────────────────────
-ML_COURSE_TOPICS: Dict[str, List[str]] = {
+ML_TOPICS: Dict[str, List[str]] = {
     "Supervised Learning": [
         "K-Nearest Neighbors (KNN)",
         "Linear Regression",
@@ -376,7 +376,7 @@ Rules:
     @staticmethod
     def get_ml_topics() -> Dict[str, List[str]]:
         """Return the supported ML topic taxonomy."""
-        return ML_COURSE_TOPICS
+        return ML_TOPICS
 
     def generate_ml_solution(
         self, question: str, topic: Optional[str] = None
