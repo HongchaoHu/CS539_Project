@@ -9,6 +9,63 @@ Agent that:
 import json
 from typing import Dict, Any, Optional, List, Iterable, cast
 
+# ── ML topic taxonomy ───────────────────────────────────────────────────────
+ML_COURSE_TOPICS: Dict[str, List[str]] = {
+    "Supervised Learning": [
+        "K-Nearest Neighbors (KNN)",
+        "Linear Regression",
+        "Logistic Regression",
+        "Naive Bayes",
+        "MAP / MLE Estimation",
+    ],
+    "Neural Networks & NLP": [
+        "MLP & Backpropagation",
+        "Word Embeddings (Word2Vec / GloVe)",
+        "Recurrent Neural Networks (RNN / LSTM)",
+        "Transformer & Attention",
+        "Text Classification",
+    ],
+    "Unsupervised Learning": [
+        "K-Means Clustering",
+        "Hierarchical Clustering",
+        "DBSCAN",
+        "PCA (Dimensionality Reduction)",
+        "t-SNE / UMAP",
+    ],
+    "Generative Models": [
+        "Variational Autoencoder (VAE)",
+        "Normalizing Flows (Flow-Based Models)",
+    ],
+}
+
+_ML_SYSTEM_PROMPT = """You are an expert machine learning engineer and educator.
+
+You support the following algorithm families:
+- Supervised Learning: KNN, linear regression, logistic regression, Naive Bayes, MAP/MLE estimation
+- Neural Networks and NLP: MLPs, backpropagation, word embeddings, RNNs/LSTMs, transformers, text classification
+- Unsupervised Learning: K-Means, hierarchical clustering, DBSCAN, PCA, t-SNE, UMAP
+- Generative Models: Variational Autoencoders (VAE), normalizing flows
+
+Generate clean, well-commented, self-contained Python code that:
+1. Includes ALL necessary import statements at the top
+2. Implements the requested algorithm using standard libraries (numpy, scikit-learn, matplotlib, torch)
+3. Uses a small synthetic or built-in dataset to demonstrate the algorithm end-to-end
+4. Produces at least one matplotlib visualization (decision boundary, loss curve, cluster plot, etc.)
+5. Defines an analysis_results dict at the end:
+   analysis_results = {
+       'analysis_steps': [{'analysis': '...', 'result': ...}],
+       'summary': '2-3 sentence summary of the result'
+   }
+6. Does NOT call plt.savefig or plt.show — figures are captured automatically
+
+Return ONLY a JSON object with exactly these keys:
+{
+  "explanation": "2-3 sentence plain-English description of the algorithm and when to use it",
+  "code": "complete, self-contained, runnable Python code as a single string with all imports included",
+  "libraries": ["list", "of", "required", "pip", "package", "names"]
+}
+No text outside the JSON."""
+
 import google.generativeai as genai
 import pandas as pd
 
@@ -313,3 +370,114 @@ Rules:
             "Create one useful overview visualization and summarize the key finding."
         )
         return self.analyze(file_path, default_prompt)
+
+    # ── ML Solution methods ───────────────────────────────────────────────────
+
+    @staticmethod
+    def get_ml_topics() -> Dict[str, List[str]]:
+        """Return the supported ML topic taxonomy."""
+        return ML_COURSE_TOPICS
+
+    def generate_ml_solution(
+        self, question: str, topic: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate and execute an ML solution for the given question.
+
+        Asks Gemini to produce self-contained Python code, executes it,
+        captures any matplotlib figures, and returns a result dict that
+        mirrors the shape returned by analyze().
+
+        Args:
+            question: Natural-language ML question or task.
+            topic: Optional algorithm hint (e.g. 'K-Nearest Neighbors (KNN)').
+
+        Returns:
+            Dict with keys: success, explanation, code, libraries,
+            summary, visualizations, steps, execution_steps, error.
+        """
+        topic_hint = f"\nAlgorithm / topic area: {topic}" if topic else ""
+        prompt = f"{_ML_SYSTEM_PROMPT}\n\nUser question: {question}{topic_hint}"
+
+        base: Dict[str, Any] = {
+            "success": False,
+            "explanation": "",
+            "code": "",
+            "libraries": [],
+            "summary": "",
+            "visualizations": [],
+            "steps": [],
+            "execution_steps": [],
+            "generated_code": "",
+        }
+
+        try:
+            response = self.model.generate_content(prompt)
+            raw = self._extract_ml_response_text(response)
+            parsed = self._parse_ml_json(raw)
+        except Exception as exc:
+            base["error"] = str(exc)
+            return base
+
+        base["explanation"] = parsed["explanation"]
+        base["code"] = parsed["code"]
+        base["libraries"] = parsed["libraries"]
+        base["generated_code"] = parsed["code"]
+
+        if not parsed["code"]:
+            base["error"] = "Model returned empty code"
+            return base
+
+        exec_result = self.visualization_tool.execute_ml_code(parsed["code"])
+        base["success"] = exec_result["success"]
+        base["visualizations"] = exec_result.get("visualizations", [])
+        base["steps"] = exec_result.get("analysis_steps", [])
+        base["execution_steps"] = exec_result.get("execution_steps", [])
+        base["summary"] = exec_result.get("summary") or parsed["explanation"]
+        if not exec_result["success"]:
+            base["error"] = exec_result.get("error", "Code execution failed")
+        return base
+
+    @staticmethod
+    def _extract_ml_response_text(response_obj: Any) -> str:
+        """Extract text from a Gemini response object."""
+        try:
+            text = getattr(response_obj, "text", "")
+            if isinstance(text, str) and text.strip():
+                return text.strip()
+        except Exception:
+            pass
+        for candidate in getattr(response_obj, "candidates", None) or []:
+            content = getattr(candidate, "content", None)
+            if not content:
+                continue
+            for part in getattr(content, "parts", []):
+                part_text = getattr(part, "text", None)
+                if isinstance(part_text, str) and part_text.strip():
+                    return part_text.strip()
+        return ""
+
+    @staticmethod
+    def _parse_ml_json(raw: str) -> Dict[str, Any]:
+        """Parse the JSON response from the ML prompt."""
+        text = raw.strip()
+        if text.startswith("```json"):
+            text = text[7:]
+        elif text.startswith("```"):
+            text = text[3:]
+        if text.endswith("```"):
+            text = text[:-3]
+        text = text.strip()
+        try:
+            data = json.loads(text)
+            return {
+                "explanation": str(data.get("explanation", "")),
+                "code": str(data.get("code", "")),
+                "libraries": list(data.get("libraries", [])),
+            }
+        except json.JSONDecodeError:
+            return {
+                "explanation": "ML solution generated.",
+                "code": text,
+                "libraries": [],
+            }

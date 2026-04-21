@@ -61,6 +61,12 @@ class QuickAnalysisRequest(BaseModel):
     question: str = Field(..., description="Natural language query for analysis")
 
 
+class MLSolutionRequest(BaseModel):
+    """Request model for ML solution generation"""
+    question: str = Field(..., description="Machine learning question or task description")
+    topic: Optional[str] = Field(None, description="Optional algorithm/topic hint")
+
+
 class AnalysisResponse(BaseModel):
     """Response model for analysis results"""
     artifact_id: str
@@ -74,6 +80,8 @@ class AnalysisResponse(BaseModel):
     latency: float
     artifact_path: Optional[str] = None
     generated_code: Optional[str] = None
+    explanation: Optional[str] = None
+    libraries: Optional[List[str]] = None
 
 
 class HealthResponse(BaseModel):
@@ -436,6 +444,82 @@ async def get_visualization(filename: str):
         media_type="image/png",
         filename=safe_filename
     )
+
+
+@app.post("/ml-solution", response_model=AnalysisResponse, tags=["ML"])
+async def ml_solution(
+    request: MLSolutionRequest,
+    background_tasks: BackgroundTasks = None
+):
+    """
+    Generate and execute an ML solution from a natural-language question.
+
+    No file upload required. Gemini generates self-contained Python code
+    that is executed on the server; any matplotlib figures are captured
+    and returned as visualization URLs.
+
+    Args:
+        request: ML question and optional algorithm/topic hint.
+
+    Returns:
+        AnalysisResponse with explanation, generated code, and visualizations.
+    """
+    if not _ensure_agent_initialized():
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Agent not initialized. "
+                f"{app.state.agent_init_error or 'Please check API key configuration.'}"
+            )
+        )
+
+    analysis_id = str(uuid.uuid4())
+    start_time = time.time()
+
+    try:
+        results = app.state.agent.generate_ml_solution(
+            request.question, request.topic
+        )
+
+        latency_ms = (time.time() - start_time) * 1000
+
+        if not results.get("success", False):
+            raise HTTPException(
+                status_code=500,
+                detail=f"ML solution failed: {results.get('error', 'Unknown error')}"
+            )
+
+        viz_files = []
+        for viz in results.get("visualizations", []):
+            if isinstance(viz, dict) and "file_path" in viz:
+                viz_files.append(os.path.basename(str(viz["file_path"])))
+            elif isinstance(viz, str):
+                viz_files.append(os.path.basename(viz))
+
+        if background_tasks:
+            background_tasks.add_task(cleanup_old_files, OUTPUT_DIR, max_age_hours=24)
+
+        return AnalysisResponse(
+            artifact_id=analysis_id,
+            query=request.question,
+            success=True,
+            summary=results.get("summary", ""),
+            analysis_plan=results.get("steps", []),
+            steps_executed=len(results.get("steps", [])),
+            visualizations=viz_files,
+            latency=round(latency_ms / 1000, 2),
+            generated_code=results.get("generated_code", ""),
+            explanation=results.get("explanation", ""),
+            libraries=results.get("libraries", []),
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal error during ML solution generation: {str(e)}"
+        )
 
 
 @app.delete("/cleanup", tags=["Maintenance"])

@@ -107,6 +107,60 @@ class VisualizationTool:
             "execution_steps": execution_steps,
         }
 
+    def execute_ml_code(self, code: str) -> Dict[str, Any]:
+        """Run self-contained ML code that includes its own import statements.
+
+        Unlike execute_generated_code, this method does NOT require a dataframe
+        and does NOT strip import statements — ML code is expected to be
+        fully self-contained (imports + synthetic/built-in dataset + model + viz).
+
+        Args:
+            code: Complete, runnable Python code produced by the ML prompt.
+
+        Returns:
+            Same dict structure as execute_generated_code.
+        """
+        execution_steps: List[str] = ["Starting ML code execution"]
+        existing_figures = set(plt.get_fignums())
+
+        execution_env: Dict[str, Any] = {
+            "__builtins__": __builtins__,
+            "analysis_results": {
+                "analysis_steps": [],
+                "summary": "",
+            },
+        }
+
+        try:
+            exec(code, execution_env)
+            execution_steps.append("ML code executed successfully")
+        except Exception as e:
+            execution_steps.append(f"Execution error: {str(e)}")
+            return {
+                "success": False,
+                "error": f"Code execution failed: {str(e)}",
+                "visualizations": [],
+                "analysis_steps": [],
+                "summary": "",
+                "execution_steps": execution_steps,
+            }
+
+        saved_plots = self.save_open_figures(existing_figures)
+        execution_steps.append(f"Saved {len(saved_plots)} visualization(s)")
+
+        analysis_results = execution_env.get("analysis_results", {})
+        analysis_steps = analysis_results.get("analysis_steps", [])
+        summary = analysis_results.get("summary", "")
+
+        return {
+            "success": True,
+            "error": None,
+            "visualizations": saved_plots,
+            "analysis_steps": analysis_steps if isinstance(analysis_steps, list) else [],
+            "summary": summary if isinstance(summary, str) else "",
+            "execution_steps": execution_steps,
+        }
+
     def _save_plot(self, fig, base_name: str) -> str:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{base_name}_{timestamp}.png"
