@@ -1,7 +1,8 @@
-"""Minimal visualization execution tool.
+"""Execution runtime for Gemini-generated analysis code.
 
-Executes Gemini-generated code against a loaded dataframe and saves any
-matplotlib figures created by that code.
+This module is intentionally narrow: it prepares the execution context,
+runs generated code, and captures any matplotlib figures that are opened.
+That separation keeps API logic and prompt logic out of the execution layer.
 """
 
 from datetime import datetime
@@ -15,6 +16,8 @@ import pandas as pd
 import seaborn as sns
 
 try:
+    # These optional bindings let generated code use common sklearn names even
+    # when the prompt omits an import after the data-analysis path strips them.
     import sklearn
     from sklearn import datasets, metrics, model_selection, preprocessing
     from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans
@@ -39,9 +42,11 @@ except Exception:
 
 
 class VisualizationTool:
-    """Execute generated visualization code and capture output figures."""
+    """Execute generated code and capture any figures it creates."""
 
     def __init__(self, df: Optional[pd.DataFrame] = None, output_dir: str = "outputs"):
+        # The tool instance can be reused across requests; the dataframe is the
+        # only request-specific piece of state for classic CSV analysis.
         self.df = df
         self.output_dir = output_dir
         self.created_plots: List[str] = []
@@ -53,10 +58,11 @@ class VisualizationTool:
         os.makedirs(output_dir, exist_ok=True)
 
     def set_dataframe(self, df: pd.DataFrame):
+        """Bind the dataframe used by the CSV-analysis execution path."""
         self.df = df
 
     def _sanitize_generated_code(self, code: str) -> str:
-        """Remove import lines because runtime already injects required libraries."""
+        """Remove import lines for CSV analysis where the runtime injects common libs."""
         sanitized_lines: List[str] = []
         for line in code.splitlines():
             if re.match(r"^\s*(from\s+\S+\s+import\s+.+|import\s+.+)$", line):
@@ -82,9 +88,8 @@ class VisualizationTool:
             execution_steps.append("Removed import statements from generated code")
         existing_figures = set(plt.get_fignums())
 
-        # globals and locals must be the SAME dict so that names bound at
-        # module level (df, pd, plt, …) are also visible inside any nested
-        # function that generated code may define.
+        # Use one shared globals dict so helper functions created by generated
+        # code can still resolve the injected names.
         execution_env: Dict[str, Any] = {
             "__builtins__": __builtins__,  # full built-ins so __import__ and all stdlib works
             "df": self.df,
@@ -112,8 +117,6 @@ class VisualizationTool:
         }
 
         try:
-            # Pass execution_env as globals only (no separate locals).
-            # This ensures nested functions can close over df, pd, plt, sns.
             exec(sanitized_code, execution_env)
             execution_steps.append("Generated code executed successfully")
         except Exception as e:
@@ -146,10 +149,10 @@ class VisualizationTool:
     def execute_ml_code(self, code: str) -> Dict[str, Any]:
         """Run self-contained ML code that includes its own import statements.
 
-        Unlike execute_generated_code, this method does NOT require a dataframe
-        and does NOT strip import statements. It intentionally executes the
-        Gemini-generated code as-is, so model/library imports should come from
-        that generated code.
+        Unlike execute_generated_code, this path does not require a dataframe
+        and does not strip imports. Gemini is expected to return self-contained
+        ML code, while the runtime still exposes common scientific libraries to
+        make execution more resilient.
 
         Args:
             code: Complete, runnable Python code produced by the ML prompt.
@@ -216,6 +219,7 @@ class VisualizationTool:
         }
 
     def _save_plot(self, fig, base_name: str) -> str:
+        """Persist one matplotlib figure and return the saved path."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{base_name}_{timestamp}.png"
         filepath = os.path.join(self.output_dir, filename)
@@ -226,6 +230,7 @@ class VisualizationTool:
         return filepath
 
     def save_open_figures(self, existing_figure_nums: Optional[set] = None) -> List[str]:
+        """Save only figures created during the current execution call."""
         baseline = existing_figure_nums or set()
         new_figures = [num for num in plt.get_fignums() if num not in baseline]
         saved_paths: List[str] = []
@@ -238,4 +243,5 @@ class VisualizationTool:
         return saved_paths
 
     def get_created_plots(self) -> List[str]:
+        """Return all plot paths created by this tool instance."""
         return self.created_plots

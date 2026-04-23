@@ -1,9 +1,9 @@
-"""
-FastAPI Web Application for Data Analysis Agent
+"""FastAPI entrypoint for the Data Analysis Agent.
 
-This module provides a RESTful API interface for the Data Analysis Agent,
-following production-ready patterns with proper error handling, validation,
-and response formatting.
+This module intentionally stays close to HTTP concerns: request validation,
+response shaping, artifact serving, and application lifecycle management.
+The heavier Gemini orchestration lives in ``src.agent`` so maintainers can
+evolve prompts and execution logic without rewriting API handlers.
 """
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, BackgroundTasks
@@ -22,21 +22,21 @@ import shutil
 from src.agent import DataAnalysisAgent
 
 
-# ==================== Configuration ====================
+# ==================== Filesystem Layout ====================
 
 UPLOAD_DIR = Path("uploads")
 ARTIFACTS_DIR = Path("artifacts")
 OUTPUT_DIR = Path("outputs")
 STATIC_DIR = Path("static")
 
-# Create directories if they don't exist
+# These folders are created eagerly so handlers can assume they exist.
 UPLOAD_DIR.mkdir(exist_ok=True)
 ARTIFACTS_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 STATIC_DIR.mkdir(exist_ok=True)
 
 
-# ==================== Pydantic Models ====================
+# ==================== Request / Response Models ====================
 
 class AnalysisRequest(BaseModel):
     """Request model for analysis endpoint"""
@@ -115,7 +115,8 @@ def create_app() -> FastAPI:
         redoc_url="/redoc"
     )
     
-    # CORS middleware for browser access
+    # The project currently ships a local browser UI, so permissive CORS keeps
+    # development simple. Tighten this before deploying to a shared environment.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],  # Configure appropriately for production
@@ -124,11 +125,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
-    # Mount static files for web interface
+    # The API can run without the static app, but serving it here keeps local
+    # development and demos self-contained.
     if STATIC_DIR.exists():
         app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     
-    # Initialize agent (singleton pattern)
+    # The agent is shared for the lifetime of the process so model setup and
+    # visualization tooling do not need to be rebuilt on every request.
     app.state.agent_init_error = None
     try:
         app.state.agent = DataAnalysisAgent()
@@ -151,7 +154,7 @@ app = create_app()
 # ==================== Helper Functions ====================
 
 def _ensure_agent_initialized() -> bool:
-    """Lazily initialize the agent if startup initialization failed."""
+    """Lazily initialize the shared agent if startup initialization failed."""
     if app.state.agent_initialized and app.state.agent is not None:
         return True
 
@@ -167,7 +170,7 @@ def _ensure_agent_initialized() -> bool:
         return False
 
 def save_analysis_artifact(analysis_id: str, results: Dict[str, Any]) -> str:
-    """Save analysis results as JSON artifact"""
+    """Persist a JSON artifact so the browser can download a stable snapshot."""
     artifact_path = ARTIFACTS_DIR / f"{analysis_id}.json"
     with open(artifact_path, 'w') as f:
         json.dump(results, f, indent=2, default=str)
@@ -175,7 +178,7 @@ def save_analysis_artifact(analysis_id: str, results: Dict[str, Any]) -> str:
 
 
 def cleanup_old_files(directory: Path, max_age_hours: int = 24):
-    """Clean up old files from a directory"""
+    """Remove old generated files to keep local development directories tidy."""
     current_time = time.time()
     for file_path in directory.glob("*"):
         if file_path.is_file():

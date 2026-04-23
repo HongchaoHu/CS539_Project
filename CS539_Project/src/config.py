@@ -1,22 +1,26 @@
-"""Configuration settings for the Data Analysis Agent"""
+"""Centralized runtime configuration for the project.
+
+Keeping environment access in one module makes future maintenance easier
+because the rest of the codebase can depend on typed attributes instead of
+scattered ``os.getenv`` lookups.
+"""
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load variables from a local .env file when present.
 load_dotenv()
 
 
 class Config:
-    """Configuration class for the agent"""
+    """Small namespace of settings used by the API, agent, and tools."""
     
-    # API Configuration
-    # Accept either env var name so notebook/server launches remain flexible.
+    # Accept either env var name so notebook and server launches can share one setup.
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
     TEMPERATURE = float(os.getenv("TEMPERATURE", "0.7"))
     MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2048"))
     
-    # Analysis Configuration
+    # Defaults below are conservative and mainly act as soft guidance for prompts.
     MAX_ROWS_TO_DISPLAY = 10
     MAX_COLUMNS_TO_ANALYZE = 50
     CORRELATION_THRESHOLD = 0.5
@@ -26,7 +30,7 @@ class Config:
     DPI = 100
     STYLE = "seaborn-v0_8-darkgrid"
     
-    # Output Configuration
+    # Output locations are referenced by both the API and the visualization tool.
     OUTPUT_DIR = "outputs"
     SAVE_FIGURES = True
     
@@ -41,4 +45,4 @@ class Config:
         return True
 
 
-# Note: Validation is performed when the agent is initialized, not at import time
+# Validation happens when the agent is created so imports stay side-effect light.

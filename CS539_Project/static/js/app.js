@@ -1,3 +1,8 @@
+// Frontend behavior for the CSV analysis workflow.
+// The browser currently targets the upload-and-analyze route; the backend ML
+// route exists separately and can be wired in later without changing the core
+// result rendering helpers below.
+
 // ==================== Configuration ====================
 const API_BASE_URL = window.location.origin;
 
@@ -68,6 +73,7 @@ async function checkHealth() {
 
 // ==================== Event Listeners ====================
 function setupEventListeners() {
+    // Centralizing event wiring in one function keeps startup behavior easy to audit.
     // Upload area click
     elements.uploadArea.addEventListener('click', (e) => {
         if (!e.target.closest('.btn-remove')) {
@@ -193,6 +199,8 @@ function clearSelectedFile() {
 
 // ==================== Analysis ====================
 async function handleAnalyze() {
+    // This browser flow is intentionally strict: it only runs when a CSV is
+    // selected because it targets the upload-based analysis endpoint.
     if (!selectedFile) {
         showError('Please select a file first.');
         return;
@@ -240,6 +248,8 @@ async function handleAnalyze() {
 
 // ==================== Results Display ====================
 function displayResults(data) {
+    // The API returns filenames only; the frontend is responsible for turning
+    // them into fetchable visualization URLs.
     // Hide upload section, show results
     elements.uploadSection.style.display = 'none';
     elements.errorSection.style.display = 'none';
